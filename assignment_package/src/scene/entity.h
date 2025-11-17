@@ -1,16 +1,34 @@
 #pragma once
 #include "glm_includes.h"
+#include <glm/gtx/vector_angle.hpp>
+#include <ostream>
 
 struct InputBundle {
-    bool wPressed, aPressed, sPressed, dPressed;
+    bool wPressed, aPressed, sPressed, dPressed, ePressed, qPressed;
     bool spacePressed;
     float mouseX, mouseY;
 
     InputBundle()
         : wPressed(false), aPressed(false), sPressed(false),
-          dPressed(false), spacePressed(false), mouseX(0.f), mouseY(0.f)
+        dPressed(false), ePressed(false), qPressed(false),
+        spacePressed(false), mouseX(0.f), mouseY(0.f)
     {}
 };
+
+inline std::ostream& operator<<(std::ostream& os, const InputBundle& ib) {
+    os << "InputBundle { "
+       << "w=" << ib.wPressed << ", "
+       << "a=" << ib.aPressed << ", "
+       << "s=" << ib.sPressed << ", "
+       << "d=" << ib.dPressed << ", "
+       << "e=" << ib.ePressed << ", "
+       << "q=" << ib.qPressed << ", "
+       << "space=" << ib.spacePressed << ", "
+       << "mouseX=" << ib.mouseX << ", "
+       << "mouseY=" << ib.mouseY
+       << " }";
+    return os;
+}
 
 class Entity {
 protected:
@@ -28,6 +46,9 @@ public:
     Entity(glm::vec3 pos);
     Entity(const Entity &e);
     virtual ~Entity();
+
+    // reset position (player and camera)
+    // virtual void resetEntity(glm::vec3 pos);
 
     // To be called by MyGL::tick()
     virtual void tick(float dT, InputBundle &input) = 0;

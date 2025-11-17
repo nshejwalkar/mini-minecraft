@@ -1,14 +1,25 @@
 #include "player.h"
+#include "constants.h"
 #include <QString>
+#include <iostream>
+#include "debug.h"
 
 Player::Player(glm::vec3 pos, const Terrain &terrain)
-    : Entity(pos), m_velocity(0,0,0), m_acceleration(0,0,0),
-      m_camera(pos + glm::vec3(0, 1.5f, 0)), mcr_terrain(terrain),
+    : Entity(pos),
+      m_velocity(0,0,0),
+      m_acceleration(0,0,0),
+      m_camera(pos + glm::vec3(0, 1.5f, 0)),
+      mcr_terrain(terrain),
+      flight_mode(true),
       mcr_camera(m_camera)
 {}
 
 Player::~Player()
 {}
+
+// void Player::resetEntity(glm::vec3 pos, const Terrain &terrain) {
+//     *this = Player(pos, terrain);
+// }
 
 void Player::tick(float dT, InputBundle &input) {
     processInputs(input);
@@ -16,13 +27,59 @@ void Player::tick(float dT, InputBundle &input) {
 }
 
 void Player::processInputs(InputBundle &inputs) {
-    // TODO: Update the Player's velocity and acceleration based on the
+    // Update the Player's velocity and acceleration based on the
     // state of the inputs.
+    // LOG(inputs);
+
+    m_acceleration = glm::vec3(0.0f);
+
+    if (this->flight_mode) {
+        if (inputs.wPressed) {
+            m_acceleration += WALK_MULT * m_forward;
+        }
+        if (inputs.sPressed) {
+            m_acceleration -= WALK_MULT * m_forward;
+        }
+        if (inputs.dPressed) {
+            m_acceleration += WALK_MULT * m_right;
+        }
+        if (inputs.aPressed) {
+            m_acceleration -= WALK_MULT * m_right;
+        }
+        if (inputs.qPressed) {
+            m_acceleration += WALK_MULT * m_up;
+        }
+        if (inputs.ePressed) {
+            m_acceleration -= WALK_MULT * m_up;
+        }
+    }
+    else {
+        glm::vec3 fwd_2d = glm::normalize(glm::vec3(m_forward.x, 0.f, m_forward.z));
+        glm::vec3 right_2d = glm::normalize(glm::vec3(m_right.x,   0.f, m_right.z));
+        if (inputs.wPressed) {
+            m_acceleration += WALK_MULT * fwd_2d;
+        }
+        if (inputs.sPressed) {
+            m_acceleration -= WALK_MULT * fwd_2d;
+        }
+        if (inputs.dPressed) {
+            m_acceleration += WALK_MULT * right_2d;
+        }
+        if (inputs.aPressed) {
+            m_acceleration -= WALK_MULT * right_2d;
+        }
+    }
+
+    // move to computePhysics?
+    this->rotateOnUpGlobal(-MOUSE_SENS*inputs.mouseX);
+    this->rotateOnRightLocal(-MOUSE_SENS*inputs.mouseY);
 }
 
 void Player::computePhysics(float dT, const Terrain &terrain) {
-    // TODO: Update the Player's position based on its acceleration
+    // Update the Player's position based on its acceleration
     // and velocity, and also perform collision detection.
+    m_velocity = (DRAG*m_velocity) + m_acceleration * dT;
+    moveAlongVector(m_velocity);
 }
 
 void Player::setCameraWidthHeight(unsigned int w, unsigned int h) {

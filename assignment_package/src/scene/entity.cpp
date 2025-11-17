@@ -15,7 +15,6 @@ Entity::Entity(const Entity &e)
 Entity::~Entity()
 {}
 
-
 void Entity::moveAlongVector(glm::vec3 dir) {
     m_position += dir;
 }
@@ -52,7 +51,12 @@ void Entity::rotateOnForwardLocal(float degrees) {
 }
 
 void Entity::rotateOnRightLocal(float degrees) {
-    float rad = glm::radians(degrees);
+    float currentPitch = 90.f-glm::degrees(glm::angle(m_forward, {0,1,0}));
+    float clampPitch = glm::clamp(currentPitch + degrees, -89.f, 89.f);
+    float delta = clampPitch - currentPitch;
+    if (delta == 0.f) return;
+
+    float rad = glm::radians(delta);
     glm::mat4 rot(glm::rotate(glm::mat4(), rad, m_right));
     m_forward = glm::vec3(rot * glm::vec4(m_forward, 0.f));
     m_up = glm::vec3(rot * glm::vec4(m_up, 0.f));

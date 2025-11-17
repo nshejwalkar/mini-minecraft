@@ -9,10 +9,10 @@ private:
     Camera m_camera;
     const Terrain &mcr_terrain;
 
-    void processInputs(InputBundle &inputs);
     void computePhysics(float dT, const Terrain &terrain);
 
 public:
+    bool flight_mode;  // changed from myGL
     // Readonly public reference to our camera
     // for easy access from MyGL
     const Camera& mcr_camera;
@@ -20,9 +20,13 @@ public:
     Player(glm::vec3 pos, const Terrain &terrain);
     virtual ~Player() override;
 
+    // void resetEntity(glm::vec3 pos) override;
+
     void setCameraWidthHeight(unsigned int w, unsigned int h);
 
     void tick(float dT, InputBundle &input) override;
+
+    void processInputs(InputBundle &inputs);
 
     // Player overrides all of Entity's movement
     // functions so that it transforms its camera

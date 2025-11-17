@@ -137,7 +137,6 @@ Chunk* Terrain::instantiateChunkAt(int x, int z) {
         cPtr->linkNeighbor(chunkWest, XNEG);
     }
     return cPtr;
-    return cPtr;
 }
 
 // TODO: When you make Chunk inherit from Drawable, change this code so

@@ -30,6 +30,13 @@ private:
     InputBundle m_inputs; // A collection of variables to be updated in keyPressEvent, mouseMoveEvent, mousePressEvent, etc.
 
     QTimer m_timer; // Timer linked to tick(). Fires approximately 60 times per second.
+    qint64 last_time_polled;
+    QPoint last_mouse_pos;
+    glm::vec2 mouseDelta;
+
+    bool mouseLocked;
+
+    void resetPlayer();
 
     void moveMouseToCenter(); // Forces the mouse position to the screen's center. You should call this
                               // from within a mouse move event after reading the mouse movement so that
@@ -69,6 +76,8 @@ protected:
     // presses a mouse button
     void mousePressEvent(QMouseEvent *e) override;
 
+    void lockMouse();
+
 private slots:
     void tick(); // Slot that gets called ~60 times per second by m_timer firing.
 
@@ -79,6 +88,8 @@ signals:
     void sig_sendPlayerLook(QString) const;
     void sig_sendPlayerChunk(QString) const;
     void sig_sendPlayerTerrainZone(QString) const;
+
+    void sig_mouseMove(QString);
 };
 
 

@@ -1,16 +1,24 @@
 #include "mygl.h"
 #include <glm_includes.h>
+#include "constants.h"
+#include "debug.h"
 
 #include <iostream>
 #include <QApplication>
 #include <QKeyEvent>
+#include <QDateTime>
 
+#include <chrono>
 
 MyGL::MyGL(QWidget *parent)
     : OpenGLContext(parent),
       m_worldAxes(this),
       m_progLambert(this), m_progFlat(this), m_progInstanced(this),
-      m_terrain(this), m_player(glm::vec3(48.f, 129.f, 48.f), m_terrain)
+    m_terrain(this), m_player(STARTING_POS, m_terrain),
+    last_time_polled(QDateTime::currentMSecsSinceEpoch()),
+    last_mouse_pos(QPoint(width() / 2, height() / 2)),
+    mouseDelta(0.f,0.f),
+    mouseLocked(false)
 {
     // Connect the timer to a function so that when the timer ticks the function is executed
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
@@ -29,6 +37,9 @@ MyGL::~MyGL() {
 
 
 void MyGL::moveMouseToCenter() {
+    // qDebug() << QPoint(width() / 2, height() / 2);
+    // qDebug() << this->mapToGlobal(QPoint(width() / 2, height() / 2));
+    // qDebug();
     QCursor::setPos(this->mapToGlobal(QPoint(width() / 2, height() / 2)));
 }
 
@@ -91,7 +102,18 @@ void MyGL::resizeGL(int w, int h) {
 // entities in the scene.
 void MyGL::tick() {
     update(); // Calls paintGL() as part of a larger QOpenGLWidget pipeline
+    auto cT = QDateTime::currentMSecsSinceEpoch();
+    auto dT = cT - last_time_polled;
+    m_inputs.mouseX = mouseDelta.x;
+    m_inputs.mouseY = mouseDelta.y;
+    // LOG("tick: " << m_inputs.mouseX << ", " << m_inputs.mouseY);
+
+    m_player.tick(dT, this->m_inputs);  // qint64 -> float
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
+
+    mouseDelta.x = 0.f;
+    mouseDelta.y = 0.f;
+    last_time_polled = cT;
 }
 
 void MyGL::sendPlayerDataToGUI() const {
@@ -133,17 +155,43 @@ void MyGL::renderTerrain() {
     m_terrain.draw(0, 64, 0, 64, &m_progInstanced);
 }
 
+void MyGL::lockMouse() {
+    this->mouseLocked = !this->mouseLocked;
+    if (!this->mouseLocked) {
+        setMouseTracking(false);
+        setCursor(Qt::ArrowCursor);
+    } else {
+        setMouseTracking(true);
+        setCursor(Qt::BlankCursor);
+    }
+}
+
+// not used or finished
+// void MyGL::resetPlayer() {
+//     m_player.resetEntity(STARTING_POS);
+//     m_inputs.wPressed = false;
+//     m_inputs.aPressed = false;
+//     m_inputs.sPressed = false;
+//     m_inputs.dPressed = false;
+//     m_inputs.spacePressed = false;
+//     m_inputs.mouseX = 0.0f;
+//     m_inputs.mouseY = 0.0f;
+// }
 
 void MyGL::keyPressEvent(QKeyEvent *e) {
     float amount = 2.0f;
     if(e->modifiers() & Qt::ShiftModifier){
         amount = 10.0f;
     }
-    // http://doc.qt.io/qt-5/qt.html#Key-enum
-    // This could all be much more efficient if a switch
-    // statement were used, but I really dislike their
-    // syntax so I chose to be lazy and use a long
-    // chain of if statements instead
+
+    /*
+        this function, keyReleaseEvent, mousePressEvent etc execute potentially 100s of times a second,
+        independent of QTimer or any Qt mechanisms.
+        camera is processed directly here for arrow keys.
+        this function and mousePressEvent modify the InputBundle member variable m_inputs
+        which is processed every 16 ms (rate set by the QTimer) by tick()
+    */
+
     if (e->key() == Qt::Key_Escape) {
         QApplication::quit();
     } else if (e->key() == Qt::Key_Right) {
@@ -151,32 +199,86 @@ void MyGL::keyPressEvent(QKeyEvent *e) {
     } else if (e->key() == Qt::Key_Left) {
         m_player.rotateOnUpGlobal(amount);
     } else if (e->key() == Qt::Key_Up) {
-        m_player.rotateOnRightLocal(-amount);
-    } else if (e->key() == Qt::Key_Down) {
         m_player.rotateOnRightLocal(amount);
+    } else if (e->key() == Qt::Key_Down) {
+        m_player.rotateOnRightLocal(-amount);
     } else if (e->key() == Qt::Key_W) {
-        m_player.moveForwardLocal(amount);
+        m_inputs.wPressed = true;
     } else if (e->key() == Qt::Key_S) {
-        m_player.moveForwardLocal(-amount);
+        m_inputs.sPressed = true;
     } else if (e->key() == Qt::Key_D) {
-        m_player.moveRightLocal(amount);
+        m_inputs.dPressed = true;
     } else if (e->key() == Qt::Key_A) {
-        m_player.moveRightLocal(-amount);
+        m_inputs.aPressed = true;
     } else if (e->key() == Qt::Key_Q) {
-        m_player.moveUpGlobal(-amount);
+        m_inputs.qPressed = true;
     } else if (e->key() == Qt::Key_E) {
-        m_player.moveUpGlobal(amount);
+        m_inputs.ePressed = true;
+    } else if (e->key() == Qt::Key_Space) {
+        m_inputs.spacePressed = true;
+    } else if (e->key() == Qt::Key_M) {
+        this->lockMouse();
+    } else if (e->key() == Qt::Key_F) {
+        m_player.flight_mode = !m_player.flight_mode;
     }
 }
 
 void MyGL::keyReleaseEvent(QKeyEvent *e) {
-    ;
+    if (e->key() == Qt::Key_W) {
+        m_inputs.wPressed = false;
+    } else if (e->key() == Qt::Key_S) {
+        m_inputs.sPressed = false;
+    } else if (e->key() == Qt::Key_D) {
+        m_inputs.dPressed = false;
+    } else if (e->key() == Qt::Key_A) {
+        m_inputs.aPressed = false;
+    } else if (e->key() == Qt::Key_Q) {
+        m_inputs.qPressed = false;
+    } else if (e->key() == Qt::Key_E) {
+        m_inputs.ePressed = false;
+    } else if (e->key() == Qt::Key_Space) {
+        m_inputs.spacePressed = false;
+    }
 }
 
 void MyGL::mouseMoveEvent(QMouseEvent *e) {
-    // TODO
+    // setMouseTracking is already true
+    // qDebug() << "Mouse press at:" << e->pos()
+    //          << "Button:" << e->button()
+    //          << "Buttons held:" << e->buttons()
+    //          << "Modifiers:" << e->modifiers();
+
+    // calculate distance from center
+    auto start = std::chrono::steady_clock::now();
+
+    QPoint center = QPoint(width() / 2, height() / 2);
+    QPoint cP = e->pos();
+    // if (cP == center) return;
+
+    QPoint dP = cP-last_mouse_pos;
+    // QPoint dP = cP - center;
+    last_mouse_pos = cP;
+
+    // accumulate deltas every event, will be consumed and reset by tick() every frame
+    mouseDelta.x += dP.x();
+    mouseDelta.y += dP.y();
+
+    QPoint dfc = cP - QPoint(width() / 2, height() / 2);
+    // only recenter if we're 100 pixels awway from the center
+    if (dfc.x()*dfc.x() + dfc.y()*dfc.y() > 10000) {
+        std::cout << "recentered mouse" << std::endl;
+        this->moveMouseToCenter();
+        last_mouse_pos = QPoint(width() / 2, height() / 2);
+    }
+
+    // this->moveMouseToCenter();
+
+    auto end = std::chrono::steady_clock::now();
+    LOG("Took" << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "mus");
 }
 
 void MyGL::mousePressEvent(QMouseEvent *e) {
     // TODO
+    // qDebug() << "clicked at " << e->pos();
+    this->moveMouseToCenter();
 }
