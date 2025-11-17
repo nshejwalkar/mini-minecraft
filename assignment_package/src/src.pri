@@ -19,6 +19,8 @@ SOURCES += \
     $$PWD/scene/chunk.cpp
 
 HEADERS += \
+    $$PWD/constants.h \
+    $$PWD/debug.h \
     $$PWD/mainwindow.h \
     $$PWD/mygl.h \
     $$PWD/shaderprogram.h \
