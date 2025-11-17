@@ -12,12 +12,12 @@
 
 MyGL::MyGL(QWidget *parent)
     : OpenGLContext(parent),
-      m_worldAxes(this),
+    m_worldAxes(this), m_crosshair(this),
       m_progLambert(this), m_progFlat(this), m_progInstanced(this),
     m_terrain(this), m_player(STARTING_POS, m_terrain),
     last_time_polled(QDateTime::currentMSecsSinceEpoch()),
     last_mouse_pos(QPoint(width() / 2, height() / 2)),
-    mouseDelta(0.f,0.f),
+    mouseDelta(0.f,0.f), mouseRecenter(false),
     mouseLocked(false)
 {
     // Connect the timer to a function so that when the timer ticks the function is executed
@@ -64,6 +64,7 @@ void MyGL::initializeGL()
 
     //Create the instance of the world axes
     m_worldAxes.createVBOdata();
+    m_crosshair.createVBOdata();
 
     // Create and set up the diffuse shader
     m_progLambert.create(":/glsl/lambert.vert.glsl", ":/glsl/lambert.frag.glsl");
@@ -77,6 +78,7 @@ void MyGL::initializeGL()
     glBindVertexArray(vao);
 
     m_terrain.CreateTestScene();
+    lastBlockType = m_terrain.getGlobalBlockAt(STARTING_POS);
 }
 
 
@@ -110,6 +112,17 @@ void MyGL::tick() {
 
     m_player.tick(dT, this->m_inputs);  // qint64 -> float
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
+
+    try {
+        auto curBlockType = m_terrain.getGlobalBlockAt(m_player.mcr_position);
+        if (curBlockType != lastBlockType) {
+            LOG("new block type entered: " << (int)curBlockType);
+            lastBlockType = curBlockType;
+        }
+    } catch (const std::out_of_range& e) {
+        LOGERR("Out of range: " << e.what());
+    }
+
 
     mouseDelta.x = 0.f;
     mouseDelta.y = 0.f;
@@ -145,6 +158,7 @@ void MyGL::paintGL() {
     glDisable(GL_DEPTH_TEST);
     m_progFlat.setUnifMat4("u_Model", glm::mat4());
     m_progFlat.draw(m_worldAxes);
+    m_progFlat.draw(m_crosshair);
     glEnable(GL_DEPTH_TEST);
 }
 
@@ -216,6 +230,8 @@ void MyGL::keyPressEvent(QKeyEvent *e) {
         m_inputs.ePressed = true;
     } else if (e->key() == Qt::Key_Space) {
         m_inputs.spacePressed = true;
+    } else if (e->key() == Qt::Key_Shift) {
+        m_inputs.shiftPressed = true;
     } else if (e->key() == Qt::Key_M) {
         this->lockMouse();
     } else if (e->key() == Qt::Key_F) {
@@ -252,6 +268,12 @@ void MyGL::mouseMoveEvent(QMouseEvent *e) {
     auto start = std::chrono::steady_clock::now();
 
     QPoint center = QPoint(width() / 2, height() / 2);
+
+    // if (mouseRecenter) {
+    //     mouseRecenter = false;
+    //     return;
+    // }
+
     QPoint cP = e->pos();
     // if (cP == center) return;
 
@@ -266,19 +288,31 @@ void MyGL::mouseMoveEvent(QMouseEvent *e) {
     QPoint dfc = cP - QPoint(width() / 2, height() / 2);
     // only recenter if we're 100 pixels awway from the center
     if (dfc.x()*dfc.x() + dfc.y()*dfc.y() > 10000) {
-        std::cout << "recentered mouse" << std::endl;
+        // std::cout << "recentered mouse" << std::endl;
         this->moveMouseToCenter();
         last_mouse_pos = QPoint(width() / 2, height() / 2);
     }
 
-    // this->moveMouseToCenter();
+    // mouseRecenter = true;
+    // this->moveMouseToCenter();.
 
     auto end = std::chrono::steady_clock::now();
-    LOG("Took" << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "mus");
+    // LOG("Took" << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "mus");
 }
 
 void MyGL::mousePressEvent(QMouseEvent *e) {
-    // TODO
-    // qDebug() << "clicked at " << e->pos();
-    this->moveMouseToCenter();
+    qDebug() << "clicked at " << e->pos();
+    // LOG("click event at " << e->pos());
+    glm::ivec3 out_hit;
+    glm::ivec3 out_prevBlock;
+    if (m_player.processClick(e, &out_hit, &out_prevBlock)) {
+        if (e->button() == Qt::LeftButton) {
+            LOG("trying to set block");
+            m_terrain.setGlobalBlockAt(out_prevBlock.x,out_prevBlock.y,out_prevBlock.z,GRASS);
+        }
+        else if (e->button() == Qt::RightButton) {
+            LOG("trying to remove block");
+            m_terrain.setGlobalBlockAt(out_hit.x,out_hit.y,out_hit.z,EMPTY);
+        }
+    }
 }

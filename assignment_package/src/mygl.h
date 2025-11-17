@@ -2,6 +2,7 @@
 #define MYGL_H
 
 #include "openglcontext.h"
+#include "scene/crosshair.h"
 #include "shaderprogram.h"
 #include "scene/worldaxes.h"
 #include "scene/camera.h"
@@ -18,6 +19,7 @@ class MyGL : public OpenGLContext
     Q_OBJECT
 private:
     WorldAxes m_worldAxes; // A wireframe representation of the world axes. It is hard-coded to sit centered at (32, 128, 32).
+    Crosshair m_crosshair; // also hardwired to sit at the center of the screen.
     ShaderProgram m_progLambert;// A shader program that uses lambertian reflection
     ShaderProgram m_progFlat;// A shader program that uses "flat" reflection (no shadowing at all)
     ShaderProgram m_progInstanced;// A shader program that is designed to be compatible with instanced rendering
@@ -32,8 +34,11 @@ private:
     QTimer m_timer; // Timer linked to tick(). Fires approximately 60 times per second.
     qint64 last_time_polled;
     QPoint last_mouse_pos;
+    BlockType lastBlockType;
     glm::vec2 mouseDelta;
+    GLuint ch_vbo;
 
+    bool mouseRecenter;
     bool mouseLocked;
 
     void resetPlayer();

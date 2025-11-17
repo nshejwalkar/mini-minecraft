@@ -10,6 +10,15 @@ private:
     const Terrain &mcr_terrain;
 
     void computePhysics(float dT, const Terrain &terrain);
+    float calculateCollision();
+    bool gridMarch(glm::vec3 rayOrigin,
+                   glm::vec3 rayDirection,
+                   const Terrain &terrain,
+                   float* out_dist,
+                   glm::ivec3* out_blockHit,
+                   glm::ivec3* out_prevBlock = nullptr);
+    bool m_collided = false;  // currently in a collision
+    bool m_jumping = false;
 
 public:
     bool flight_mode;  // changed from myGL
@@ -27,6 +36,7 @@ public:
     void tick(float dT, InputBundle &input) override;
 
     void processInputs(InputBundle &inputs);
+    bool processClick(QMouseEvent* e, glm::ivec3* out_hit, glm::ivec3* out_prevBlock);
 
     // Player overrides all of Entity's movement
     // functions so that it transforms its camera
