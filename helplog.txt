@@ -1,0 +1,8 @@
+Neel Shejwalkar:
+
+12:04am friday: I wanted to expand my debug.h file and make it support different types of LOGs.
+https://stackoverflow.com/questions/679979/how-to-make-a-variadic-macro-variable-number-of-arguments
+
+Jay Katyan:
+
+I did not use help for this assignment.
