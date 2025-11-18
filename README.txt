@@ -6,8 +6,20 @@ Milestone 1
 
 Video: https://youtu.be/QCswykhS4P4
 
-Jay Katyan: Procedural Terrain, Efficient Terrain Rendering and Chunking
+Jay Katyan:
 
+Procedural Terrain:
+I implemented procedural terrain generation by creating two new classes, the "World" class and the "Noise" class. The noise class contains a number of helper functions/various noise generators, whereas the world class uses these noise generators to procedurally generate the terrain. Currently, the world class is capable of generating two distinct terrains, the "grassland" terrain and
+the "mountains" terrain (each represented as an enum). The "grassland" terrain uses a combination of Worley noise and Fractal Perlin Noise to create a realistic, rolling terrain with subtle hills.
+The "mountains" terrain uses Fractal Perlin Noise which is then post-processed to amplify its outputs/height to create more realistic mountains. Finally, I've implemented logic in terrain.cpp to
+set blocks according to their world height. Throughout my work, I used various helper scripts/tools to visualize different noise functions and height maps before implementing them into the game itself.
+
+Efficient Terrain Rendering and Chunking:
+To implement efficient terrain rendering and chunking, I implemented the create() function such that the VBO data is interleaved (rather than instanced) and only contains face data (rather the all sides for every block, including faces that cannot be directly seen). This improved performance significantly, and allowed for significantly more efficient terrain rendering. I also implemented
+terrain expansion logic, however rather than only doing checks for -16-+16 around the player, I decided to check a much larger range of -32-+32 on x and z. This allows for a signficantly improved
+user experience when roaming the world and generating new chunks, as chunks are not generated in "strips" and rather as larger landmasses. I also increased the render distance significantly, allowing
+for 1024x1024 blocks to be visible at once. In part, this was done to assist my debugging of the world generation. Simultaneously however, this improves the gameplay experience and makes the game
+far more similar to Minecraft's official implementation.
 
 Neel Shejwalkar:
 
