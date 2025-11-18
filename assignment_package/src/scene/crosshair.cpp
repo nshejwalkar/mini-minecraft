@@ -2,7 +2,7 @@
 
 void Crosshair::createVBOdata()
 {
-    float s = 2.f;
+    float s = 0.02f;
 
     GLuint idx[4] = {0, 1, 2, 3};
     glm::vec4 pos[4] = {

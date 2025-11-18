@@ -57,23 +57,24 @@ void Player::processInputs(InputBundle &inputs) {
 
     if (this->flight_mode) {
         if (inputs.wPressed) {
-            m_acceleration += WALK_MULT * m_forward;
+            m_acceleration += FLY_MULT * m_forward;
         }
         if (inputs.sPressed) {
-            m_acceleration -= WALK_MULT * m_forward;
+            m_acceleration -= FLY_MULT * m_forward;
         }
         if (inputs.dPressed) {
-            m_acceleration += WALK_MULT * m_right;
+            m_acceleration += FLY_MULT * m_right;
         }
         if (inputs.aPressed) {
-            m_acceleration -= WALK_MULT * m_right;
+            m_acceleration -= FLY_MULT * m_right;
         }
         if (inputs.qPressed || inputs.spacePressed) {
-            m_acceleration += WALK_MULT * m_up;
+            m_acceleration += FLY_MULT * m_up;
         }
         if (inputs.ePressed || inputs.shiftPressed) {
-            m_acceleration -= WALK_MULT * m_up;
+            m_acceleration -= FLY_MULT * m_up;
         }
+        if (inputs.ctrlPressed) m_acceleration *= 4;
     }
     else {
         glm::vec3 fwd_2d = glm::normalize(glm::vec3(m_forward.x, 0.f, m_forward.z));
@@ -90,10 +91,15 @@ void Player::processInputs(InputBundle &inputs) {
         if (inputs.aPressed) {
             m_acceleration -= WALK_MULT * right_2d;
         }
-        if (inputs.spacePressed && !m_jumping) {
-            m_acceleration += WALK_MULT * m_up;
-            m_jumping = true;
+        if (inputs.spacePressed && m_touchingGround) {
+            m_acceleration += JUMP_MULT * glm::vec3(0,1,0);
+            m_touchingGround = false;
         }
+        if (inputs.shiftPressed && !inputs.spacePressed) m_acceleration *= 2;
+    }
+
+    if (inputs.tReleased) {
+        m_teleporting = true;
     }
 
     // move to computePhysics?
@@ -164,8 +170,7 @@ bool Player::gridMarch(glm::vec3 rayOrigin,
 // calculate collision: for all 8 vertices' rayorigins, perform grid marching
 // grid marching should return what axis side we're hitting (x,y,z) if anything
 // m_velocity should *= with that bitmask to perform sliding
-float Player::calculateCollision() {
-    // for pos+(0.5,0,0.5) .... pos+(0.5,2,0.5)....
+glm::vec3 Player::calculateCollision() {
     std::array<glm::vec3, 8> vertices = {
         m_position + glm::vec3(0.5,0,0.5),
         m_position + glm::vec3(0.5,0,-0.5),
@@ -176,31 +181,70 @@ float Player::calculateCollision() {
         m_position + glm::vec3(-0.5,2,0.5),
         m_position + glm::vec3(-0.5,2,-0.5)
     };
-    float smallestCollision = 100;
+    glm::vec3 smallestCollision = glm::vec3(1000);
     for (auto vertex : vertices) {
-        float out_dist;
-        glm::ivec3 out_hit;
-        if (this->gridMarch(vertex, m_velocity, mcr_terrain, &out_dist, &out_hit)) {
+        float out_dist_x;
+        glm::ivec3 out_hit_x;
+        if (m_velocity.x != 0 && this->gridMarch(vertex, glm::vec3(m_velocity.x,0,0), mcr_terrain, &out_dist_x, &out_hit_x)) {
             // LOG("COLLISION! out_dist: " << out_dist << ", out_hit: " << out_hit.x << ", " << out_hit.y << ", " << out_hit.z);
-            smallestCollision = glm::min(out_dist, smallestCollision);
+            smallestCollision.x = glm::min(out_dist_x, smallestCollision.x);
+        }
+
+        float out_dist_y;
+        glm::ivec3 out_hit_y;
+        if (m_velocity.y != 0 && this->gridMarch(vertex, glm::vec3(0,m_velocity.y,0), mcr_terrain, &out_dist_y, &out_hit_y)) {
+            smallestCollision.y = glm::min(out_dist_y, smallestCollision.y);
+        }
+
+        float out_dist_z;
+        glm::ivec3 out_hit_z;
+        if (m_velocity.z != 0 && this->gridMarch(vertex, glm::vec3(0,0,m_velocity.z), mcr_terrain, &out_dist_z, &out_hit_z)) {
+            smallestCollision.z = glm::min(out_dist_z, smallestCollision.z);
         }
     }
     return smallestCollision;
-    // gridmarch(m_velocity)
-    // as soon as any return true, dont finish. if we intersect two+ axes we want to differentiate that
 }
+
 
 void Player::computePhysics(float dT, const Terrain &terrain) {
     // Update the Player's position based on its acceleration
     // and velocity, and also perform collision detection.
+    if (m_teleporting) {
+        LOG("about to teleport");
+        float tele_dist;
+        glm::ivec3 dontcare;
+        glm::ivec3 block_to_teleport;
+        if (gridMarch(m_camera.mcr_position,
+                        glm::normalize(m_forward)*MAX_TELEPORT,
+                        mcr_terrain,
+                        &tele_dist,
+                        &dontcare,
+                        &block_to_teleport)) {
+            glm::vec3 target = glm::vec3(block_to_teleport) + glm::vec3(0.5,0,0.5);
+            moveAlongVector(target - m_position);
+        }
+        m_teleporting = false;
+        return;
+    }
 
     if (!flight_mode) m_acceleration += GRAVITY;
-    LOG(m_acceleration.x << " " << m_acceleration.y << " " << m_acceleration.z);
+
     m_velocity = (DRAG*m_velocity) + m_acceleration * dT;
-    // LOG("velocity before: " << m_velocity.x << ", " << m_velocity.y << ", " << m_velocity.z);
-    float minColDist = this->calculateCollision();
-    if (minColDist < 1) {
-        m_velocity *= minColDist;
+
+    glm::vec3 exp_dist = m_velocity * dT;
+    glm::vec3 minColDist = this->calculateCollision();
+
+    LOG("standing on " << m_position.x << ", " << m_position.y << ", " << m_position.z);
+
+    if (std::abs(exp_dist.x) > minColDist.x) {
+        m_velocity.x = 0;
+    }
+    if (std::abs(exp_dist.y) > minColDist.y) {
+        m_velocity.y = 0;
+        m_touchingGround = true;
+    }
+    if (std::abs(exp_dist.z) > minColDist.z) {
+        m_velocity.z = 0;
     }
     moveAlongVector(m_velocity);
 
