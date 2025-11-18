@@ -320,17 +320,14 @@ void MyGL::mouseMoveEvent(QMouseEvent *e) {
 
 void MyGL::mousePressEvent(QMouseEvent *e) {
     qDebug() << "clicked at " << e->pos();
-    // LOG("click event at " << e->pos());
     glm::ivec3 out_hit;
     glm::ivec3 out_prevBlock;
     if (m_player.processClick(e, &out_hit, &out_prevBlock)) {
         if (e->button() == Qt::LeftButton) {
-            LOG("trying to set block");
-            m_terrain.setGlobalBlockAt(out_prevBlock.x,out_prevBlock.y,out_prevBlock.z,GRASS);
+            m_terrain.setGlobalBlockAtUpdate(out_hit.x, out_hit.y, out_hit.z, EMPTY);
         }
         else if (e->button() == Qt::RightButton) {
-            LOG("trying to remove block");
-            m_terrain.setGlobalBlockAt(out_hit.x,out_hit.y,out_hit.z,EMPTY);
+            m_terrain.setGlobalBlockAtUpdate(out_prevBlock.x, out_prevBlock.y, out_prevBlock.z, GRASS);
         }
     }
 }

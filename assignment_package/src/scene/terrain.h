@@ -89,6 +89,9 @@ public:
     // given type.
     void setGlobalBlockAt(int x, int y, int z, BlockType t);
 
+    // Updates chunks on mouse click
+    void setGlobalBlockAtUpdate(int x, int y, int z, BlockType t);
+
     // Draws every Chunk that falls within the bounding box
     // described by the min and max coords, using the provided
     // ShaderProgram

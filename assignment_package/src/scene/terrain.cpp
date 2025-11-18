@@ -116,6 +116,34 @@ void Terrain::setGlobalBlockAt(int x, int y, int z, BlockType t)
     }
 }
 
+void Terrain::setGlobalBlockAtUpdate(int x, int y, int z, BlockType t)
+{
+    if(hasChunkAt(x, z)) {
+        uPtr<Chunk> &c = getChunkAt(x, z);
+        glm::vec2 chunkOrigin = glm::vec2(floor(x / 16.f) * 16, floor(z / 16.f) * 16);
+        c->setLocalBlockAt(static_cast<unsigned int>(x - chunkOrigin.x),
+                           static_cast<unsigned int>(y),
+                           static_cast<unsigned int>(z - chunkOrigin.y),
+                           t);
+        
+        // Update VBO data
+        c->createVBOdata();
+        int currX = static_cast<int>(x - chunkOrigin.x);
+        int currZ = static_cast<int>(z - chunkOrigin.y);
+        if (currX == 0 && hasChunkAt(x - 16, z)) { getChunkAt(x - 16, z)->createVBOdata(); }
+        if (currX == 15 && hasChunkAt(x + 16, z)){ getChunkAt(x + 16, z)->createVBOdata(); }
+        if (currZ == 0 && hasChunkAt(x, z - 16)) { getChunkAt(x, z - 16)->createVBOdata(); }
+        if (currZ == 15 && hasChunkAt(x, z + 16)) { getChunkAt(x, z + 16)->createVBOdata(); }
+
+        m_chunkVBOsNeedUpdating = true;
+    }
+    else {
+        throw std::out_of_range("Coordinates " + std::to_string(x) +
+                                " " + std::to_string(y) + " " +
+                                std::to_string(z) + " have no Chunk!");
+    }
+}
+
 Chunk* Terrain::instantiateChunkAt(int x, int z) {
     uPtr<Chunk> chunk = mkU<Chunk>(mp_context, x, z);
     Chunk *cPtr = chunk.get();
