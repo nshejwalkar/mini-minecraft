@@ -9,16 +9,17 @@ private:
     Camera m_camera;
     const Terrain &mcr_terrain;
 
+    glm::vec3 moveWithCollisionSingleVector(const glm::vec3 &delta);
     void computePhysics(float dT, const Terrain &terrain);
-    float calculateCollision();
+    glm::vec3 calculateCollision();
     bool gridMarch(glm::vec3 rayOrigin,
                    glm::vec3 rayDirection,
                    const Terrain &terrain,
                    float* out_dist,
                    glm::ivec3* out_blockHit,
                    glm::ivec3* out_prevBlock = nullptr);
-    bool m_collided = false;  // currently in a collision
-    bool m_jumping = false;
+    bool m_touchingGround = true;
+    bool m_teleporting = false;
 
 public:
     bool flight_mode;  // changed from myGL

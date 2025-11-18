@@ -113,17 +113,17 @@ void MyGL::tick() {
     m_player.tick(dT, this->m_inputs);  // qint64 -> float
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
 
-    try {
-        auto curBlockType = m_terrain.getGlobalBlockAt(m_player.mcr_position);
-        if (curBlockType != lastBlockType) {
-            LOG("new block type entered: " << (int)curBlockType);
-            lastBlockType = curBlockType;
-        }
-    } catch (const std::out_of_range& e) {
-        LOGERR("Out of range: " << e.what());
-    }
+    // try {
+    //     auto curBlockType = m_terrain.getGlobalBlockAt(m_player.mcr_position);
+    //     if (curBlockType != lastBlockType) {
+    //         LOG("new block type entered: " << (int)curBlockType);
+    //         lastBlockType = curBlockType;
+    //     }
+    // } catch (const std::out_of_range& e) {
+    //     LOGERR("Out of range: " << e.what());
+    // }
 
-
+    m_inputs.tReleased = false;
     mouseDelta.x = 0.f;
     mouseDelta.y = 0.f;
     last_time_polled = cT;
@@ -158,6 +158,9 @@ void MyGL::paintGL() {
     glDisable(GL_DEPTH_TEST);
     m_progFlat.setUnifMat4("u_Model", glm::mat4());
     m_progFlat.draw(m_worldAxes);
+
+    m_progFlat.setUnifMat4("u_ViewProj", glm::mat4());
+    m_progFlat.setUnifMat4("u_Model", glm::mat4());
     m_progFlat.draw(m_crosshair);
     glEnable(GL_DEPTH_TEST);
 }
@@ -232,6 +235,8 @@ void MyGL::keyPressEvent(QKeyEvent *e) {
         m_inputs.spacePressed = true;
     } else if (e->key() == Qt::Key_Shift) {
         m_inputs.shiftPressed = true;
+    } else if (e->key() == Qt::Key_Control) {
+        m_inputs.ctrlPressed = true;
     } else if (e->key() == Qt::Key_M) {
         this->lockMouse();
     } else if (e->key() == Qt::Key_F) {
@@ -254,6 +259,13 @@ void MyGL::keyReleaseEvent(QKeyEvent *e) {
         m_inputs.ePressed = false;
     } else if (e->key() == Qt::Key_Space) {
         m_inputs.spacePressed = false;
+    } else if (e->key() == Qt::Key_Shift) {
+        m_inputs.shiftPressed = false;
+    } else if (e->key() == Qt::Key_Control) {
+        m_inputs.ctrlPressed = false;
+    } else if (e->key() == Qt::Key_T) {
+        LOG("t released");
+        m_inputs.tReleased = true;
     }
 }
 
