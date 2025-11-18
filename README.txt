@@ -18,7 +18,7 @@ Placing/removing blocks:
 This was implemented by performing grid marching from the camera's center through its forward vector. The desired block to remove was simply the one that the grid marching algorithm finds to be the closest hit. To know where to add a new block, however, I needed to modify the algorithm slightly to keep track of, and return, the (empty) block immediately before a hit.
 
 Collision detection:
-To detect a collision, I performed grid marching 3 times (one for each dimension) for all 8 vertices of the player's bounding box. If the expected distance to be travelled for that tick (calculated using the current velocity at that tick) for any direction is greater than the "allowed" distance (found using grid marching) for that direction, then the current velocity is zeroed out for that direction. Splitting up the logic for velocity into components like this lends to smooth sliding across walls, as well as allowing for jumping.
+To detect a collision, I performed grid marching 3 times (one for each dimension) for all 8 vertices of the player's bounding box. If the expected distance to be travelled for that tick (calculated using the current velocity at that tick) for any direction is greater than the "allowed" distance (found using grid marching) for that direction, then the current velocity is zeroed out for that direction. Splitting up the logic for velocity into components like this lends to smooth sliding across walls and allows for jumping.
 
 Other features:
 I added a crosshair by buffering 2 small lines, and then drawing them in screen space using the same progFlat shader program.
