@@ -117,7 +117,7 @@ void Terrain::setGlobalBlockAt(int x, int y, int z, BlockType t)
 }
 
 Chunk* Terrain::instantiateChunkAt(int x, int z) {
-    uPtr<Chunk> chunk = mkU<Chunk>(x, z);
+    uPtr<Chunk> chunk = mkU<Chunk>(mp_context, x, z);
     Chunk *cPtr = chunk.get();
     m_chunks[toKey(x, z)] = move(chunk);
     // Set the neighbor pointers of itself and its neighbors
@@ -143,52 +143,106 @@ Chunk* Terrain::instantiateChunkAt(int x, int z) {
 // TODO: When you make Chunk inherit from Drawable, change this code so
 // it draws each Chunk with the given ShaderProgram
 void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shaderProgram) {
-
-    if(m_chunkVBOsNeedUpdating) {
-        m_geomCube.clearOffsetBuf();
-        m_geomCube.clearColorBuf();
-
-        std::vector<glm::vec3> offsets, colors;
-
-        for(int x = minX; x < maxX; x += 16) {
-            for(int z = minZ; z < maxZ; z += 16) {
+    for(int x = minX; x < maxX; x += 16) {
+        for(int z = minZ; z < maxZ; z += 16) {
+            if(hasChunkAt(x, z)) {
                 const uPtr<Chunk> &chunk = getChunkAt(x, z);
-                for(int i = 0; i < 16; ++i) {
-                    for(int j = 0; j < 256; ++j) {
-                        for(int k = 0; k < 16; ++k) {
-                            BlockType t = chunk->getLocalBlockAt(i, j, k);
+                glm::mat4 model = glm::translate(glm::mat4(1.f), glm::vec3(x, 0, z));
+                shaderProgram->setUnifMat4("u_Model", model);
+                shaderProgram->setUnifMat4("u_ModelInvTr", glm::inverse(glm::transpose(model)));
+                shaderProgram->drawInterleaved(*chunk);
+            }
+        }
+    }
+}
 
-                            if(t != EMPTY) {
-                                offsets.push_back(glm::vec3(i+x, j, k+z));
-                                switch(t) {
-                                case GRASS:
-                                    colors.push_back(glm::vec3(95.f, 159.f, 53.f) / 255.f);
-                                    break;
-                                case DIRT:
-                                    colors.push_back(glm::vec3(121.f, 85.f, 58.f) / 255.f);
-                                    break;
-                                case STONE:
-                                    colors.push_back(glm::vec3(0.5f));
-                                    break;
-                                case WATER:
-                                    colors.push_back(glm::vec3(0.f, 0.f, 0.75f));
-                                    break;
-                                default:
-                                    // Other block types are not yet handled, so we default to debug purple
-                                    colors.push_back(glm::vec3(1.f, 0.f, 1.f));
-                                    break;
-                                }
+// Loads new chunks
+void Terrain::loadChunks(glm::vec3 pos) {
+    // Player coordinates
+    int posX = static_cast<int>(glm::floor(pos.x / 16.f)) * 16;
+    int posZ = static_cast<int>(glm::floor(pos.z / 16.f)) * 16;
+    
+    // Creates chunks from -32 to +32 around the player
+    for (int x = -32; x <= 32; x += 16) {
+        for (int z = -32; z <= 32; z += 16) {
+
+            // Skip current chunk
+            if (x == 0 && z == 0) {
+                continue;
+            }
+
+            // Get current chunk offset
+            int currX = posX + x;
+            int currZ = posZ + z;
+
+            // If chunk already exists, skip
+            if (hasChunkAt(currX, currZ)) {
+                continue;
+            }
+
+            // Create new chunk
+            Chunk* chunk = instantiateChunkAt(currX, currZ);
+            
+            // Generate terrain for this chunk
+            for (int i = 0; i < 16; ++i) {
+                for (int k = 0; k < 16; ++k) {
+                    int worldX = currX + i;
+                    int worldZ = currZ + k;
+
+                    // Get terrain height and biome
+                    int height = m_world.getHeight(worldX, worldZ);
+                    BiomeType biome = m_world.getBiome(worldX, worldZ);
+                    bool isMountain = (biome == BiomeType::MOUNTAINS);
+
+                    // Fill base with STONE
+                    for(int y = 0; y <= 128; ++y) {
+                        setGlobalBlockAt(worldX, y, worldZ, STONE);
+                    }
+
+                    // Fill height based on biome
+                    if (height > 128) {
+                        for (int y = 129; y < height; ++y) {
+                            // If mountain, STONE
+                            if (isMountain) {
+                                setGlobalBlockAt(worldX, y, worldZ, STONE);
                             }
+                            // If grassland, DIRT
+                            else {
+                                setGlobalBlockAt(worldX, y, worldZ, DIRT);
+                            }
+                        }
+
+                        // If mountain above 200, SNOW
+                        if (isMountain && height > 200) {
+                            setGlobalBlockAt(worldX, height, worldZ, SNOW);
+                        }
+
+                        // If mountain below 200, STONE
+                        else if (isMountain) {
+                            setGlobalBlockAt(worldX, height, worldZ, STONE);
+                        }
+
+                        // If grassland, GRASS
+                        else {
+                            setGlobalBlockAt(worldX, height, worldZ, GRASS);
+                        }
+                    }
+
+                    // WATER in EMPTY blocks
+                    for (int y = 128; y <= 138; ++y) {
+                        if (y > height) {
+                            setGlobalBlockAt(worldX, y, worldZ, WATER);
                         }
                     }
                 }
             }
+
+            // Create VBO data
+            chunk->createVBOdata();
         }
-        m_geomCube.createInstancedVBOdata(offsets, colors);
-        m_chunkVBOsNeedUpdating = false;
     }
-    shaderProgram->drawInstanced(m_geomCube);
 }
+
 
 void Terrain::CreateTestScene()
 {
@@ -208,26 +262,66 @@ void Terrain::CreateTestScene()
     // now exists.
     m_generatedTerrain.insert(toKey(0, 0));
 
-    // Create the basic terrain floor
+    // Procedurally generate terrain
     for(int x = 0; x < 64; ++x) {
         for(int z = 0; z < 64; ++z) {
-            if((x + z) % 2 == 0) {
-                setGlobalBlockAt(x, 128, z, STONE);
+            int worldX = x;
+            int worldZ = z;
+
+            // Get terrain height and biome
+            int height = m_world.getHeight(worldX, worldZ);
+            BiomeType biome = m_world.getBiome(worldX, worldZ);
+            bool isMountain = (biome == BiomeType::MOUNTAINS);
+
+            // Fill base with STONE
+            for(int y = 0; y <= 128; ++y) {
+                setGlobalBlockAt(worldX, y, worldZ, STONE);
             }
-            else {
-                setGlobalBlockAt(x, 128, z, DIRT);
+
+            // Fill height based on biome
+            if (height > 128) {
+                for(int y = 129; y < height; ++y) {
+                    // If mountain, STONE
+                    if (isMountain) {
+                        setGlobalBlockAt(worldX, y, worldZ, STONE);
+                    }
+                    // If grassland, DIRT
+                    else {
+                        setGlobalBlockAt(worldX, y, worldZ, DIRT);
+                    }
+                }
+
+                // If mountain above 200, SNOW
+                if (isMountain && height > 200) {
+                    setGlobalBlockAt(worldX, height, worldZ, SNOW);
+                }
+
+                // If mountain below 200, STONE
+                else if (isMountain) {
+                    setGlobalBlockAt(worldX, height, worldZ, STONE);
+                }
+
+                // If grassland, GRASS
+                else {
+                    setGlobalBlockAt(worldX, height, worldZ, GRASS);
+                }
+            }
+
+            // WATER in EMPTY blocks
+            for (int y = 128; y <= 138; ++y) {
+                if (y > height) {
+                    setGlobalBlockAt(worldX, y, worldZ, WATER);
+                }
             }
         }
     }
-    // Add "walls" for collision testing
-    for(int x = 0; x < 64; ++x) {
-        setGlobalBlockAt(x, 129, 16, GRASS);
-        setGlobalBlockAt(x, 130, 16, GRASS);
-        setGlobalBlockAt(x, 129, 48, GRASS);
-        setGlobalBlockAt(16, 130, x, GRASS);
+    
+    // Create VBO data for initial chunks
+    for(int x = 0; x < 64; x += 16) {
+        for(int z = 0; z < 64; z += 16) {
+            uPtr<Chunk> &chunk = getChunkAt(x, z);
+            chunk->createVBOdata();
+        }
     }
-    // Add a central column
-    for(int y = 129; y < 140; ++y) {
-        setGlobalBlockAt(32, y, 32, GRASS);
-    }
+
 }

@@ -113,15 +113,18 @@ void MyGL::tick() {
     m_player.tick(dT, this->m_inputs);  // qint64 -> float
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
 
-    // try {
-    //     auto curBlockType = m_terrain.getGlobalBlockAt(m_player.mcr_position);
-    //     if (curBlockType != lastBlockType) {
-    //         LOG("new block type entered: " << (int)curBlockType);
-    //         lastBlockType = curBlockType;
-    //     }
-    // } catch (const std::out_of_range& e) {
-    //     LOGERR("Out of range: " << e.what());
-    // }
+//     try {
+//         auto curBlockType = m_terrain.getGlobalBlockAt(m_player.mcr_position);
+//         if (curBlockType != lastBlockType) {
+//             LOG("new block type entered: " << (int)curBlockType);
+//             lastBlockType = curBlockType;
+//         }
+//     } catch (const std::out_of_range& e) {
+//         LOGERR("Out of range: " << e.what());
+//     }
+
+    // Load new chunks
+    m_terrain.loadChunks(m_player.mcr_position);
 
     m_inputs.tReleased = false;
     mouseDelta.x = 0.f;
@@ -169,7 +172,10 @@ void MyGL::paintGL() {
 // terrain that surround the player (refer to Terrain::m_generatedTerrain
 // for more info)
 void MyGL::renderTerrain() {
-    m_terrain.draw(0, 64, 0, 64, &m_progInstanced);
+    glm::vec3 playerPos = m_player.mcr_position;
+    int x = static_cast<int>(glm::floor(playerPos.x / 16.f)) * 16;
+    int z = static_cast<int>(glm::floor(playerPos.z / 16.f)) * 16;
+    m_terrain.draw(x - 512, x + 512, z - 512, z + 512, &m_progLambert);
 }
 
 void MyGL::lockMouse() {

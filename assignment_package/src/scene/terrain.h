@@ -2,6 +2,7 @@
 #include "smartpointerhelp.h"
 #include "glm_includes.h"
 #include "chunk.h"
+#include "world.h"
 #include <array>
 #include <unordered_map>
 #include <unordered_set>
@@ -57,6 +58,9 @@ private:
     // IS IMPLEMENTED.
     bool m_chunkVBOsNeedUpdating;
 
+    // World generator
+    World m_world;
+
     OpenGLContext* mp_context;
 
 public:
@@ -93,4 +97,7 @@ public:
     // Initializes the Chunks that store the 64 x 256 x 64 block scene you
     // see when the base code is run.
     void CreateTestScene();
+
+    // Loads new chunks
+    void loadChunks(glm::vec3 pos);
 };

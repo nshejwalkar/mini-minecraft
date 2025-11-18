@@ -6,6 +6,8 @@ SOURCES += \
     $$PWD/mainwindow.cpp \
     $$PWD/mygl.cpp \
     $$PWD/scene/crosshair.cpp \
+    $$PWD/scene/noise.cpp \
+    $$PWD/scene/world.cpp \
     $$PWD/shaderprogram.cpp \
     $$PWD/drawable.cpp \
     $$PWD/cameracontrolshelp.cpp \
@@ -25,6 +27,8 @@ HEADERS += \
     $$PWD/mainwindow.h \
     $$PWD/mygl.h \
     $$PWD/scene/crosshair.h \
+    $$PWD/scene/noise.h \
+    $$PWD/scene/world.h \
     $$PWD/shaderprogram.h \
     $$PWD/drawable.h \
     $$PWD/cameracontrolshelp.h \
