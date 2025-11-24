@@ -43,50 +43,21 @@ float Noise::perlinNoise(glm::vec2 uv) const {
 }
 
 // Fractal Perlin Noise
-float Noise::fractalPerlinNoise(float x, float y, int octaves, float persistence, float frequency) const {
+float Noise::fractalPerlinNoise(float x, float y, int octaves, float persistence, float frequency, float lacunarity) const {
     float total = 0.f;
     float freq = frequency;
-    float amp = 0.5f;
+    float amp = 1.0f;
+    float maxAmp = 0.f;
 
     for (int i = 0; i < octaves; i++) {
         total += perlinNoise(glm::vec2(x * freq, y * freq)) * amp;
-        freq *= 2.f;
+        maxAmp += amp;
+        freq *= lacunarity;
         amp *= persistence;
     }
 
-    return total;
-}
-
-// Interpolated Noise for FBM
-float Noise::interpNoise2D(float x, float y) const {
-    int intX = int(glm::floor(x));
-    float fractX = glm::fract(x);
-    int intY = int(glm::floor(y));
-    float fractY = glm::fract(y);
-
-    float v1 = perlinNoise(glm::vec2(intX, intY));
-    float v2 = perlinNoise(glm::vec2(intX + 1, intY));
-    float v3 = perlinNoise(glm::vec2(intX, intY + 1));
-    float v4 = perlinNoise(glm::vec2(intX + 1, intY + 1));
-
-    float i1 = glm::mix(v1, v2, fractX);
-    float i2 = glm::mix(v3, v4, fractX);
-    return glm::mix(i1, i2, fractY);
-}
-
-// Fractional Brownian Motion
-float Noise::fractalBrownianMotion(float x, float y) const {
-    float total = 0;
-    float persistence = 0.5f;
-    int octaves = 8;
-    float freq = 2.f;
-    float amp = 0.5f;
-    for(int i = 1; i <= octaves; i++) {
-        total += interpNoise2D(x * freq, y * freq) * amp;
-        freq *= 2.f;
-        amp *= persistence;
-    }
-    return total;
+    float noise = total / maxAmp;
+    return glm::clamp(noise, -0.5f, 0.5f);
 }
 
 // Worley Noise

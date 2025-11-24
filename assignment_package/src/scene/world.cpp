@@ -2,35 +2,34 @@
 
 // Constructor
 World::World()
-    : noise(WORLD_SEED) 
+    : noise(SEED) 
 {}
 
 //========================================================
-// Noise Functions
+// Continentalness Functions
 //========================================================
 
-// Grassland height
-float World::getGrasslandHeight(float x, float z) const {
-    float scale = 512.0f;
-    float worley = noise.worleyNoise(x / scale, z / scale, 5.0f);
-    float perlin = noise.fractalPerlinNoise(x / scale, z / scale, 4.0f, 0.5f, 1.0f) * 0.5f + 0.5f;
-    float height = worley + perlin * 0.9f;
-    return glm::clamp(height * 32.0f + 125.0f, 0.0f, 255.0f);
+// Evaluate continentalness using spline
+float World::evaluateContinentalness(float x) const {
+    const auto& first = spline.front();
+    const auto& last = spline.back();
+
+    for (size_t i = 0; i < spline.size() - 1; ++i) {
+        const auto& p0 = spline[i];
+        const auto& p1 = spline[i + 1];
+
+        if (x >= p0.first && x <= p1.first) {
+            float normalized = (x - p0.first) / (p1.first - p0.first);
+            return p0.second + normalized * (p1.second - p0.second);
+        }
+    }
+    
+    return 0.0f;
 }
 
-// Mountains height
-float World::getMountainHeight(float x, float z) const {
-    float scale = 512.0f;
-    float perlin = noise.fractalPerlinNoise(x / scale, z / scale, 6.0f, 0.75f, 2.0f) * 0.5f + 0.5f;
-    float height = glm::pow(perlin, 4.0f);
-    return glm::clamp(height * 192.0f + 200.0f, 0.0f, 255.0f);
-}
-
-// Biome noise
-float World::getBiomeNoise(float x, float z) const {
-    float scale = 512.0f;
-    float perlin = noise.fractalPerlinNoise(x / scale, z / scale, 4.0f, 0.5f, 1.0f) * 0.5f + 0.5f;
-    return glm::smoothstep(0.25f, 0.75f, perlin);
+// Get continentalness noise
+float World::getContinentalnessNoise(float x, float z) const {
+    return noise.fractalPerlinNoise(x, z, CONTINENTALNESS_OCTAVES, CONTINENTALNESS_PERSISTENCE, CONTINENTALNESS_FREQUENCY, CONTINENTALNESS_LACUNARITY);
 }
 
 //========================================================
@@ -39,11 +38,48 @@ float World::getBiomeNoise(float x, float z) const {
 
 // Get height at (x, z)
 int World::getHeight(float x, float z) const {
-    float t = getBiomeNoise(x, z);
-    return glm::mix(getGrasslandHeight(x, z), getMountainHeight(x, z), t);
+    return static_cast<int>(evaluateContinentalness(getContinentalnessNoise(x, z)));
 }
 
-// Get biome at (x, z)
-BiomeType World::getBiome(float x, float z) const {
-    return getBiomeNoise(x, z) < 0.5f ? BiomeType::GRASSLANDS : BiomeType::MOUNTAINS;
-}
+// Get block type at height
+BlockType World::getBlockType(int currentHeight, int maxHeight) const {
+
+    // Above max height
+    if (currentHeight >= maxHeight) {
+        if (currentHeight <= WATER_HEIGHT) {
+            return BlockType::WATER;
+        }
+        return BlockType::EMPTY;
+    }
+
+    // Underground
+    if (currentHeight < maxHeight - 4) {
+        return BlockType::STONE;
+    }
+
+    // Snowcap
+    if (maxHeight >= SNOW_HEIGHT) {
+        if (currentHeight == maxHeight - 1) {
+            return BlockType::SNOW;
+        }
+        return BlockType::STONE;
+    }
+
+    // Mountain
+    if (maxHeight >= STONE_HEIGHT) {
+        return BlockType::STONE;
+    }
+
+    // Sand
+    if (maxHeight <= SAND_HEIGHT) {
+        return BlockType::SAND;
+    }
+
+    // Grassland
+    if (currentHeight == maxHeight - 1) {
+        return BlockType::GRASS;
+    }
+
+    // Grassland underground
+    return BlockType::DIRT;
+}   
