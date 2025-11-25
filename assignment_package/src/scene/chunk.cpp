@@ -297,7 +297,7 @@ glm::vec4 Chunk::getColor(BlockType blockType) const {
 }
 
 glm::vec4 Chunk::getBottomLeftUV(BlockType blockType, bool top) const {
-    bool anim = (blockType == WATER || blockType == LAVA || blockType == SNOW);
+    bool anim = (blockType == WATER || blockType == LAVA);
     float flag = anim ? 1.f : 0.f;  // animated flag fits into uv.z
     // float flag = 0.f;
 
@@ -316,7 +316,9 @@ glm::vec4 Chunk::getBottomLeftUV(BlockType blockType, bool top) const {
         case BEDROCK:
             return glm::vec4(glm::vec2(1.f, 14.f) / 16.f, flag, 0.f);
         case SNOW:
-            return glm::vec4(glm::vec2(3.f, 11.f) / 16.f, flag, 0.f);
+            return glm::vec4(glm::vec2(2.f, 11.f) / 16.f, flag, 0.f);
+        case SAND:
+            return glm::vec4(glm::vec2(2.f, 14.f) / 16.f, flag, 0.f);
         default:
             return glm::vec4(0,0,0,0);
         }
