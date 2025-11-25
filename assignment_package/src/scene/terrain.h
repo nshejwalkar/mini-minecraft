@@ -44,7 +44,7 @@ private:
     // in the Terrain will never be deleted until the program is terminated.
     std::unordered_set<int64_t> m_generatedTerrain;
 
-    // TODO: DELETE ALL REFERENCES TO m_geomCube AS YOU WILL NOT USE
+    // DELETE ALL REFERENCES TO m_geomCube AS YOU WILL NOT USE
     // IT IN YOUR FINAL PROGRAM!
     // The instance of a unit cube we can use to render any cube.
     // Presently, Terrain::draw renders one instance of this cube
@@ -101,6 +101,16 @@ public:
     // see when the base code is run.
     void CreateTestScene();
 
+    // Loads a chunk
+    void addChunkInternal(int posx, int posz);
+    void addChunkVBO(int posx, int posz);
+
     // Loads new chunks
-    void loadChunks(glm::vec3 pos);
+    void loadChunks(glm::vec3 pos, bool initial = false);
+
+    // Load new TGZs
+    void loadTGZ(int zoneX, int zoneZ, bool initial = false);
+
+    // load around
+    void loadSurroundingTGZs(glm::vec3 pos, bool initial = false);
 };

@@ -317,6 +317,8 @@ glm::vec4 Chunk::getBottomLeftUV(BlockType blockType, bool top) const {
             return glm::vec4(glm::vec2(1.f, 14.f) / 16.f, flag, 0.f);
         case SNOW:
             return glm::vec4(glm::vec2(3.f, 11.f) / 16.f, flag, 0.f);
+        case SAND:
+            return glm::vec4(glm::vec2(2.f, 14.f) / 16.f, flag, 0.f);
         default:
             return glm::vec4(0,0,0,0);
         }
