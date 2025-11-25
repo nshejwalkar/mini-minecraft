@@ -231,49 +231,26 @@ void Terrain::loadChunks(glm::vec3 pos) {
                     int worldX = currX + i;
                     int worldZ = currZ + k;
 
-                    // Get terrain height and biome
-                    int height = m_world.getHeight(worldX, worldZ);
-                    BiomeType biome = m_world.getBiome(worldX, worldZ);
-                    bool isMountain = (biome == BiomeType::MOUNTAINS);
+                    // Get height
+                    int maxHeight = m_world.getHeight(worldX, worldZ);
 
-                    // Fill base with STONE
-                    for(int y = 0; y <= 128; ++y) {
-                        setGlobalBlockAt(worldX, y, worldZ, STONE);
-                    }
-
-                    // Fill height based on biome
-                    if (height > 128) {
-                        for (int y = 129; y < height; ++y) {
-                            // If mountain, STONE
-                            if (isMountain) {
-                                setGlobalBlockAt(worldX, y, worldZ, STONE);
-                            }
-                            // If grassland, DIRT
-                            else {
-                                setGlobalBlockAt(worldX, y, worldZ, DIRT);
-                            }
+                    // Fill blocks
+                    for (int currHeight = 0; currHeight < 256; ++currHeight) {
+                        BlockType blockType;
+                        
+                        // Cave
+                        if (m_world.isCave(worldX, currHeight, worldZ)) {
+                            blockType = m_world.getCaveBlockType(currHeight);
                         }
 
-                        // If mountain above 200, SNOW
-                        if (isMountain && height > 200) {
-                            setGlobalBlockAt(worldX, height, worldZ, SNOW);
-                        }
-
-                        // If mountain below 200, STONE
-                        else if (isMountain) {
-                            setGlobalBlockAt(worldX, height, worldZ, STONE);
-                        }
-
-                        // If grassland, GRASS
+                        // Normal terrain
                         else {
-                            setGlobalBlockAt(worldX, height, worldZ, GRASS);
+                            blockType = m_world.getBlockType(currHeight, maxHeight);
                         }
-                    }
-
-                    // WATER in EMPTY blocks
-                    for (int y = 128; y <= 138; ++y) {
-                        if (y > height) {
-                            setGlobalBlockAt(worldX, y, worldZ, WATER);
+                        
+                        // Set block
+                        if (blockType != BlockType::EMPTY) {
+                            setGlobalBlockAt(worldX, currHeight, worldZ, blockType);
                         }
                     }
                 }
@@ -307,49 +284,26 @@ void Terrain::CreateTestScene()
             int worldX = x;
             int worldZ = z;
 
-            // Get terrain height and biome
-            int height = m_world.getHeight(worldX, worldZ);
-            BiomeType biome = m_world.getBiome(worldX, worldZ);
-            bool isMountain = (biome == BiomeType::MOUNTAINS);
+            // Get height
+            int maxHeight = m_world.getHeight(worldX, worldZ);
 
-            // Fill base with STONE
-            for(int y = 0; y <= 128; ++y) {
-                setGlobalBlockAt(worldX, y, worldZ, STONE);
-            }
-
-            // Fill height based on biome
-            if (height > 128) {
-                for(int y = 129; y < height; ++y) {
-                    // If mountain, STONE
-                    if (isMountain) {
-                        setGlobalBlockAt(worldX, y, worldZ, STONE);
-                    }
-                    // If grassland, DIRT
-                    else {
-                        setGlobalBlockAt(worldX, y, worldZ, DIRT);
-                    }
+            // Fill blocks
+            for (int currHeight = 0; currHeight < 256; ++currHeight) {
+                BlockType blockType;
+                        
+                // Cave
+                if (m_world.isCave(worldX, currHeight, worldZ)) {
+                    blockType = m_world.getCaveBlockType(currHeight);
                 }
 
-                // If mountain above 200, SNOW
-                if (isMountain && height > 200) {
-                    setGlobalBlockAt(worldX, height, worldZ, SNOW);
-                }
-
-                // If mountain below 200, STONE
-                else if (isMountain) {
-                    setGlobalBlockAt(worldX, height, worldZ, STONE);
-                }
-
-                // If grassland, GRASS
+                // Normal terrain
                 else {
-                    setGlobalBlockAt(worldX, height, worldZ, GRASS);
+                    blockType = m_world.getBlockType(currHeight, maxHeight);
                 }
-            }
-
-            // WATER in EMPTY blocks
-            for (int y = 128; y <= 138; ++y) {
-                if (y > height) {
-                    setGlobalBlockAt(worldX, y, worldZ, WATER);
+                
+                // Set block
+                if (blockType != BlockType::EMPTY) {
+                    setGlobalBlockAt(worldX, currHeight, worldZ, blockType);
                 }
             }
         }
