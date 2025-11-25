@@ -39,8 +39,7 @@ void Chunk::linkNeighbor(uPtr<Chunk> &neighbor, Direction dir) {
 }
 
 inline bool isTransparent(BlockType b) {
-    return (b == WATER);
-    // return true;
+    return (b == WATER || b == LAVA);
 }
 
 void Chunk::createVBOdata() {
@@ -97,8 +96,7 @@ void Chunk::createVBOdata() {
                 numFaces = isTransparent(currBlock) ? &numTransFaces : &numOpaqueFaces;
 
                 // If neighbor EMPTY, add pos/normal/color to vertex data
-                // transparent too
-                if (xPos == EMPTY) {
+                if (currBlock != WATER && currBlock != LAVA && (xPos == EMPTY || isTransparent(xPos))) {
                     glm::vec4 normal(1, 0, 0, 0);
                     vertexData->push_back(glm::vec4(1, 0, 0, 1) + pos);
                     vertexData->push_back(normal);
@@ -119,7 +117,7 @@ void Chunk::createVBOdata() {
                     (*numFaces)++;
                 }
 
-                if (xNeg == EMPTY) {
+                if (currBlock != WATER && currBlock != LAVA && (xNeg == EMPTY || isTransparent(xNeg))) {
                     glm::vec4 normal(-1, 0, 0, 0);
                     vertexData->push_back(glm::vec4(0, 0, 1, 1) + pos);
                     vertexData->push_back(normal);
@@ -140,7 +138,7 @@ void Chunk::createVBOdata() {
                     (*numFaces)++;
                 }
 
-                if (yPos == EMPTY) {
+                if ((currBlock == WATER || currBlock == LAVA) ? (yPos == EMPTY) : (yPos == EMPTY || isTransparent(yPos))) {
                     glm::vec4 normal(0, 1, 0, 0);
                     vertexData->push_back(glm::vec4(0, 1, 0, 1) + pos);
                     vertexData->push_back(normal);
@@ -161,7 +159,7 @@ void Chunk::createVBOdata() {
                     (*numFaces)++;
                 }
 
-                if (yNeg == EMPTY) {
+                if (currBlock != WATER && currBlock != LAVA && (yNeg == EMPTY || isTransparent(yNeg))) {
                     glm::vec4 normal(0, -1, 0, 0);
                     vertexData->push_back(glm::vec4(0, 0, 1, 1) + pos);
                     vertexData->push_back(normal);
@@ -182,7 +180,7 @@ void Chunk::createVBOdata() {
                     (*numFaces)++;
                 }
 
-                if (zPos == EMPTY) {
+                if (currBlock != WATER && currBlock != LAVA && (zPos == EMPTY || isTransparent(zPos))) {
                     glm::vec4 normal(0, 0, 1, 0);
                     vertexData->push_back(glm::vec4(0, 0, 1, 1) + pos);
                     vertexData->push_back(normal);
@@ -203,7 +201,7 @@ void Chunk::createVBOdata() {
                     (*numFaces)++;
                 }
 
-                if (zNeg == EMPTY) {
+                if (currBlock != WATER && currBlock != LAVA && (zNeg == EMPTY || isTransparent(zNeg))) {
                     glm::vec4 normal(0, 0, -1, 0);
                     vertexData->push_back(glm::vec4(1, 0, 0, 1) + pos);
                     vertexData->push_back(normal);
@@ -288,7 +286,7 @@ glm::vec4 Chunk::getColor(BlockType blockType) const {
         case SAND:
             return glm::vec4(glm::vec3(247.f, 233.f, 163.f) / 255.f, 1.f);
         case LAVA:
-            return glm::vec4(glm::vec3(1.f, 0.25f, 0.f), 1.f);
+            return glm::vec4(glm::vec3(1.f, 0.25f, 0.f), 0.5f);
         case BEDROCK:
             return glm::vec4(glm::vec3(0.1f, 0.1f, 0.1f), 1.f);
         default:
@@ -297,7 +295,7 @@ glm::vec4 Chunk::getColor(BlockType blockType) const {
 }
 
 glm::vec4 Chunk::getBottomLeftUV(BlockType blockType, bool top) const {
-    bool anim = (blockType == WATER || blockType == LAVA || blockType == SNOW);
+    bool anim = (blockType == WATER || blockType == LAVA);
     float flag = anim ? 1.f : 0.f;  // animated flag fits into uv.z
     // float flag = 0.f;
 
@@ -316,7 +314,7 @@ glm::vec4 Chunk::getBottomLeftUV(BlockType blockType, bool top) const {
         case BEDROCK:
             return glm::vec4(glm::vec2(1.f, 14.f) / 16.f, flag, 0.f);
         case SNOW:
-            return glm::vec4(glm::vec2(3.f, 11.f) / 16.f, flag, 0.f);
+            return glm::vec4(glm::vec2(2.f, 11.f) / 16.f, flag, 0.f);
         case SAND:
             return glm::vec4(glm::vec2(2.f, 14.f) / 16.f, flag, 0.f);
         default:

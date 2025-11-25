@@ -38,10 +38,10 @@ float World::getContinentalnessNoise(float x, float z) const {
 
 // Check if block at (x, y, z) is in a cave
 bool World::isCave(int x, int y, int z) const {
-    // if (y >= 1 && y <= CAVE_HEIGHT) {
-    //     float caveNoise = getCaveNoise(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
-    //     return caveNoise < CAVE_THRESHOLD;
-    // }
+    if (y >= 1 && y <= CAVE_HEIGHT) {
+        float caveNoise = getCaveNoise(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+        return caveNoise < CAVE_THRESHOLD;
+    }
 
     return false;
 }
