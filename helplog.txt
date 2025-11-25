@@ -1,7 +1,25 @@
+===========
+Milestone 1
+===========
 Neel Shejwalkar:
 
 12:04am friday: I wanted to expand my debug.h file and make it support different types of LOGs.
 https://stackoverflow.com/questions/679979/how-to-make-a-variadic-macro-variable-number-of-arguments
+
+Jay Katyan:
+
+I did not use help for this assignment.
+
+===========
+Milestone 2
+===========
+Neel Shejwalkar:
+
+5:20pm sunday: I was interested in the consequences of including if statements or branching in shaders.
+https://iquilezles.org/articles/gpuconditionals/
+
+1:02pm monday: I needed a way to pass in the animate flag to the fragment shader.
+https://stackoverflow.com/questions/27581271/flat-qualifier-in-glsl
 
 Jay Katyan:
 
