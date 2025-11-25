@@ -22,7 +22,7 @@ private:
     static constexpr int SNOW_HEIGHT = 150;
     static constexpr int STONE_HEIGHT = 110;
     static constexpr int SAND_HEIGHT = 88;
-    static constexpr int CAVE_HEIGHT = 100;
+    static constexpr int CAVE_HEIGHT = 60;
     static constexpr int LAVA_HEIGHT = 25;
 
     //========================================================

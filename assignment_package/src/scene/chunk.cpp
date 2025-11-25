@@ -97,8 +97,7 @@ void Chunk::createVBOdata() {
                 numFaces = isTransparent(currBlock) ? &numTransFaces : &numOpaqueFaces;
 
                 // If neighbor EMPTY, add pos/normal/color to vertex data
-                // transparent too
-                if (xPos == EMPTY) {
+                if (currBlock != WATER && (xPos == EMPTY || isTransparent(xPos))) {
                     glm::vec4 normal(1, 0, 0, 0);
                     vertexData->push_back(glm::vec4(1, 0, 0, 1) + pos);
                     vertexData->push_back(normal);
@@ -119,7 +118,7 @@ void Chunk::createVBOdata() {
                     (*numFaces)++;
                 }
 
-                if (xNeg == EMPTY) {
+                if (currBlock != WATER && (xNeg == EMPTY || isTransparent(xNeg))) {
                     glm::vec4 normal(-1, 0, 0, 0);
                     vertexData->push_back(glm::vec4(0, 0, 1, 1) + pos);
                     vertexData->push_back(normal);
@@ -140,7 +139,7 @@ void Chunk::createVBOdata() {
                     (*numFaces)++;
                 }
 
-                if (yPos == EMPTY) {
+                if (currBlock == WATER ? (yPos != WATER) : (yPos == EMPTY || isTransparent(yPos))) {
                     glm::vec4 normal(0, 1, 0, 0);
                     vertexData->push_back(glm::vec4(0, 1, 0, 1) + pos);
                     vertexData->push_back(normal);
@@ -161,7 +160,7 @@ void Chunk::createVBOdata() {
                     (*numFaces)++;
                 }
 
-                if (yNeg == EMPTY) {
+                if (currBlock != WATER && (yNeg == EMPTY || isTransparent(yNeg))) {
                     glm::vec4 normal(0, -1, 0, 0);
                     vertexData->push_back(glm::vec4(0, 0, 1, 1) + pos);
                     vertexData->push_back(normal);
@@ -182,7 +181,7 @@ void Chunk::createVBOdata() {
                     (*numFaces)++;
                 }
 
-                if (zPos == EMPTY) {
+                if (currBlock != WATER && (zPos == EMPTY || isTransparent(zPos))) {
                     glm::vec4 normal(0, 0, 1, 0);
                     vertexData->push_back(glm::vec4(0, 0, 1, 1) + pos);
                     vertexData->push_back(normal);
@@ -203,7 +202,7 @@ void Chunk::createVBOdata() {
                     (*numFaces)++;
                 }
 
-                if (zNeg == EMPTY) {
+                if (currBlock != WATER && (zNeg == EMPTY || isTransparent(zNeg))) {
                     glm::vec4 normal(0, 0, -1, 0);
                     vertexData->push_back(glm::vec4(1, 0, 0, 1) + pos);
                     vertexData->push_back(normal);
