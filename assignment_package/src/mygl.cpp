@@ -147,7 +147,7 @@ void MyGL::tick() {
 
     // Get current block player is in
     try {
-        currCameraBlock = m_terrain.getGlobalBlockAt(m_player.mcr_position);
+        currCameraBlock = m_terrain.getGlobalBlockAt(m_player.mcr_camera.mcr_position);
     }
     catch (const std::out_of_range& e) {
         currCameraBlock = EMPTY;
@@ -377,7 +377,10 @@ void MyGL::mousePressEvent(QMouseEvent *e) {
     glm::ivec3 out_prevBlock;
     if (m_player.processClick(e, &out_hit, &out_prevBlock)) {
         if (e->button() == Qt::LeftButton) {
-            m_terrain.setGlobalBlockAtUpdate(out_hit.x, out_hit.y, out_hit.z, EMPTY);
+            BlockType block = m_terrain.getGlobalBlockAt(out_hit.x, out_hit.y, out_hit.z);
+            if (block != BEDROCK) {
+                m_terrain.setGlobalBlockAtUpdate(out_hit.x, out_hit.y, out_hit.z, EMPTY);
+            }
         }
         else if (e->button() == Qt::RightButton) {
             m_terrain.setGlobalBlockAtUpdate(out_prevBlock.x, out_prevBlock.y, out_prevBlock.z, GRASS);

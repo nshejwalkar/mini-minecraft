@@ -109,6 +109,8 @@ void Player::processInputs(InputBundle &inputs) {
         m_teleporting = true;
     }
 
+    m_spacePressed = inputs.spacePressed;
+
     // move to computePhysics?
     this->rotateOnUpGlobal(-MOUSE_SENS*inputs.mouseX);
     this->rotateOnRightLocal(-MOUSE_SENS*inputs.mouseY);
@@ -163,7 +165,7 @@ bool Player::gridMarch(glm::vec3 rayOrigin,
             break;
         }
 
-        if (cellType != EMPTY) {
+        if (cellType != EMPTY && cellType != WATER && cellType != LAVA) {
             *out_blockHit = currCell;
             if (out_prevBlock) *out_prevBlock = prevCell;
             *out_dist = glm::min(maxLen, curr_t);
@@ -234,6 +236,21 @@ void Player::computePhysics(float dT, const Terrain &terrain) {
         return;
     }
 
+    // Get block player is in
+    BlockType block = EMPTY;
+    BlockType blockBelow = EMPTY;
+
+    try {
+        block = terrain.getGlobalBlockAt(m_position.x, m_position.y, m_position.z);
+        blockBelow = terrain.getGlobalBlockAt(m_position.x, m_position.y - 1, m_position.z);
+    } catch (const std::out_of_range&) {
+        block = EMPTY;
+        blockBelow = EMPTY;
+    }
+
+    // Determine if player is in liquid
+    playerInLiquid = (block == WATER || block == LAVA) || (blockBelow == WATER || blockBelow == LAVA);
+
     if (!flight_mode) m_acceleration += GRAVITY;
 
     m_velocity = (DRAG*m_velocity) + m_acceleration * dT;
@@ -254,7 +271,16 @@ void Player::computePhysics(float dT, const Terrain &terrain) {
         if (std::abs(exp_dist.z) > minColDist.z) {
             m_velocity.z = 0;
         }
+
+        if (playerInLiquid) {
+            m_velocity *= 4.f / 5.f;
+        }
+
+        if (playerInLiquid && m_spacePressed) {
+            m_velocity.y = 0.1f;
+        }
     }
+
     moveAlongVector(m_velocity);
 
 }

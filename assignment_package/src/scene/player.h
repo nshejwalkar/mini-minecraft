@@ -20,6 +20,8 @@ private:
                    glm::ivec3* out_prevBlock = nullptr);
     bool m_touchingGround = true;
     bool m_teleporting = false;
+    bool playerInLiquid = false;
+    bool m_spacePressed = false;
 
 public:
     bool flight_mode;  // changed from myGL
