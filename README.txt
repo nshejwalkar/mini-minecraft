@@ -35,3 +35,24 @@ To detect a collision, I performed grid marching 3 times (one for each dimension
 Other features:
 I added a crosshair by buffering 2 small lines, and then drawing them in screen space using the same progFlat shader program.
 I added a teleportation feature - by clicking t, one can aim and then teleport directly to a block up to 200 blocks' distance from the player's current position. This was implemented using the grid marching function used before.
+
+
+===========
+Milestone 2
+===========
+
+Video: https://youtu.be/IdP-l8xU5Pg
+
+Jay Katyan:
+Cave Generation: 
+I implemented cave generation by extending the 2D procedural noise pipeline used for the terrain. Using a 3D Perlin Noise field, each (x, y, z) coordinate is evaluated against a cave threshold to determine whether that position should be carved out into a cave, which produces organically-shaped underground caves. I also added lava by assigning lava blocks to low altitude empty regions, ensuring that deeper caves naturally fill with lava while higher caves remain hollow.
+
+Multithreading:
+I implemented multithreading for the extended terrain generation setting up BlockTypeWorkers for internal data structure editing and VBOWorkers for adding to the VBO. I decided to have these workers subclass Qt's QRunnable and be managed by QThreadPool for this milestone over the C++ standard library multithreading utilities, as I already had prior experience with Qt multithreading and thought it would integrate better. To safely edit and share data between the workers and the main Terrain class, I used QMutex to lock and wait for completed chunk additions and VBO edits for each respective worker. 
+
+Neel Shejwalkar:
+Texturing and Texture Animation:
+I added textures into our game by using the given texture atlas and appending the correct UV coordinates into the per-chunk VBOs. I added an "animate" flag for water and lava blocks in the z position of the vec4 that specified UV coordinates in the VBO, and updated the fragment shader to correctly animate these blocks. For each chunk, I created 2 pairs of VBOs, one for transparent and one for opaque blocks, and enabled alpha blending.
+
+Other features:
+I slightly restructured the terrain generation to make it easier to set up for multithreading by introducing the terrain generation zone primitive and reordering chunk loops.
