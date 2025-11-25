@@ -39,8 +39,7 @@ void Chunk::linkNeighbor(uPtr<Chunk> &neighbor, Direction dir) {
 }
 
 inline bool isTransparent(BlockType b) {
-    return (b == WATER);
-    // return true;
+    return (b == WATER || b == LAVA);
 }
 
 void Chunk::createVBOdata() {
@@ -97,7 +96,7 @@ void Chunk::createVBOdata() {
                 numFaces = isTransparent(currBlock) ? &numTransFaces : &numOpaqueFaces;
 
                 // If neighbor EMPTY, add pos/normal/color to vertex data
-                if (currBlock != WATER && (xPos == EMPTY || isTransparent(xPos))) {
+                if (currBlock != WATER && currBlock != LAVA && (xPos == EMPTY || isTransparent(xPos))) {
                     glm::vec4 normal(1, 0, 0, 0);
                     vertexData->push_back(glm::vec4(1, 0, 0, 1) + pos);
                     vertexData->push_back(normal);
@@ -118,7 +117,7 @@ void Chunk::createVBOdata() {
                     (*numFaces)++;
                 }
 
-                if (currBlock != WATER && (xNeg == EMPTY || isTransparent(xNeg))) {
+                if (currBlock != WATER && currBlock != LAVA && (xNeg == EMPTY || isTransparent(xNeg))) {
                     glm::vec4 normal(-1, 0, 0, 0);
                     vertexData->push_back(glm::vec4(0, 0, 1, 1) + pos);
                     vertexData->push_back(normal);
@@ -139,7 +138,7 @@ void Chunk::createVBOdata() {
                     (*numFaces)++;
                 }
 
-                if (currBlock == WATER ? (yPos != WATER) : (yPos == EMPTY || isTransparent(yPos))) {
+                if ((currBlock == WATER || currBlock == LAVA) ? (yPos == EMPTY) : (yPos == EMPTY || isTransparent(yPos))) {
                     glm::vec4 normal(0, 1, 0, 0);
                     vertexData->push_back(glm::vec4(0, 1, 0, 1) + pos);
                     vertexData->push_back(normal);
@@ -160,7 +159,7 @@ void Chunk::createVBOdata() {
                     (*numFaces)++;
                 }
 
-                if (currBlock != WATER && (yNeg == EMPTY || isTransparent(yNeg))) {
+                if (currBlock != WATER && currBlock != LAVA && (yNeg == EMPTY || isTransparent(yNeg))) {
                     glm::vec4 normal(0, -1, 0, 0);
                     vertexData->push_back(glm::vec4(0, 0, 1, 1) + pos);
                     vertexData->push_back(normal);
@@ -181,7 +180,7 @@ void Chunk::createVBOdata() {
                     (*numFaces)++;
                 }
 
-                if (currBlock != WATER && (zPos == EMPTY || isTransparent(zPos))) {
+                if (currBlock != WATER && currBlock != LAVA && (zPos == EMPTY || isTransparent(zPos))) {
                     glm::vec4 normal(0, 0, 1, 0);
                     vertexData->push_back(glm::vec4(0, 0, 1, 1) + pos);
                     vertexData->push_back(normal);
@@ -202,7 +201,7 @@ void Chunk::createVBOdata() {
                     (*numFaces)++;
                 }
 
-                if (currBlock != WATER && (zNeg == EMPTY || isTransparent(zNeg))) {
+                if (currBlock != WATER && currBlock != LAVA && (zNeg == EMPTY || isTransparent(zNeg))) {
                     glm::vec4 normal(0, 0, -1, 0);
                     vertexData->push_back(glm::vec4(1, 0, 0, 1) + pos);
                     vertexData->push_back(normal);
@@ -287,7 +286,7 @@ glm::vec4 Chunk::getColor(BlockType blockType) const {
         case SAND:
             return glm::vec4(glm::vec3(247.f, 233.f, 163.f) / 255.f, 1.f);
         case LAVA:
-            return glm::vec4(glm::vec3(1.f, 0.25f, 0.f), 1.f);
+            return glm::vec4(glm::vec3(1.f, 0.25f, 0.f), 0.5f);
         case BEDROCK:
             return glm::vec4(glm::vec3(0.1f, 0.1f, 0.1f), 1.f);
         default:
