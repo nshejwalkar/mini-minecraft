@@ -12,6 +12,7 @@ Player::Player(glm::vec3 pos, const Terrain &terrain)
       m_camera(pos + glm::vec3(0, 1.5f, 0)),
       mcr_terrain(terrain),
       flight_mode(true),
+      noclip_mode(false),
       mcr_camera(m_camera)
 {}
 
@@ -68,11 +69,17 @@ void Player::processInputs(InputBundle &inputs) {
         if (inputs.aPressed) {
             m_acceleration -= FLY_MULT * m_right;
         }
-        if (inputs.qPressed || inputs.spacePressed) {
+        if (inputs.qPressed) {
             m_acceleration += FLY_MULT * m_up;
         }
-        if (inputs.ePressed || inputs.shiftPressed) {
+        if (inputs.spacePressed) {
+            m_acceleration += FLY_MULT * glm::vec3(0,1,0);
+        }
+        if (inputs.ePressed) {
             m_acceleration -= FLY_MULT * m_up;
+        }
+        if (inputs.shiftPressed) {
+            m_acceleration += FLY_MULT * glm::vec3(0,-1,0);
         }
         if (inputs.ctrlPressed) m_acceleration *= 4;
     }
@@ -232,19 +239,21 @@ void Player::computePhysics(float dT, const Terrain &terrain) {
     m_velocity = (DRAG*m_velocity) + m_acceleration * dT;
 
     glm::vec3 exp_dist = m_velocity * dT;
-    glm::vec3 minColDist = this->calculateCollision();
+    if (!noclip_mode) {
+        glm::vec3 minColDist = this->calculateCollision();
 
-    LOG("standing on " << m_position.x << ", " << m_position.y << ", " << m_position.z);
+        // LOG("standing on " << m_position.x << ", " << m_position.y << ", " << m_position.z);
 
-    if (std::abs(exp_dist.x) > minColDist.x) {
-        m_velocity.x = 0;
-    }
-    if (std::abs(exp_dist.y) > minColDist.y) {
-        m_velocity.y = 0;
-        m_touchingGround = true;
-    }
-    if (std::abs(exp_dist.z) > minColDist.z) {
-        m_velocity.z = 0;
+        if (std::abs(exp_dist.x) > minColDist.x) {
+            m_velocity.x = 0;
+        }
+        if (std::abs(exp_dist.y) > minColDist.y) {
+            m_velocity.y = 0;
+            m_touchingGround = true;
+        }
+        if (std::abs(exp_dist.z) > minColDist.z) {
+            m_velocity.z = 0;
+        }
     }
     moveAlongVector(m_velocity);
 

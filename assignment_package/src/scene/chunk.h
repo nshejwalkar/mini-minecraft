@@ -40,7 +40,7 @@ struct EnumHash {
 // render all the world at once, while also not having
 // to render the world block by block.
 
-// TODO have Chunk inherit from Drawable
+// have Chunk inherit from Drawable
 class Chunk : public Drawable {
 private:
     // All of the blocks contained within this Chunk
@@ -55,6 +55,9 @@ private:
 
     // Get color for a block type
     glm::vec4 getColor(BlockType blockType) const;
+
+    // Get UV for a block
+    glm::vec4 getBottomLeftUV(BlockType blockType, bool top = false) const;
 
 public:
     Chunk(OpenGLContext* context, int x, int z);

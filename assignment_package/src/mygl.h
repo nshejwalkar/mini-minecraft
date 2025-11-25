@@ -8,6 +8,7 @@
 #include "scene/camera.h"
 #include "scene/terrain.h"
 #include "scene/player.h"
+#include "texture.h"
 
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLShaderProgram>
@@ -37,6 +38,8 @@ private:
     BlockType lastBlockType;
     glm::vec2 mouseDelta;
     GLuint ch_vbo;
+    Texture textureAtlas;  // stores the big map of all block textures
+    float currTime;
 
     bool mouseRecenter;
     bool mouseLocked;

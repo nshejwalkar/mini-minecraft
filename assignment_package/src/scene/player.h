@@ -23,6 +23,7 @@ private:
 
 public:
     bool flight_mode;  // changed from myGL
+    bool noclip_mode;
     // Readonly public reference to our camera
     // for easy access from MyGL
     const Camera& mcr_camera;
