@@ -98,7 +98,10 @@ void MyGL::initializeGL()
     // using multiple VAOs, we can just bind one once.
     glBindVertexArray(vao);
 
-    m_terrain.CreateTestScene();
+    // m_terrain.CreateTestScene();
+    // m_terrain.loadChunks(m_player.mcr_position, true);
+    // m_terrain.loadTGZ(m_player.mcr_position);
+    m_terrain.loadSurroundingTGZs(m_player.mcr_position, true);
     lastBlockType = m_terrain.getGlobalBlockAt(STARTING_POS);
 
     quad.createVBOdata();
@@ -154,7 +157,9 @@ void MyGL::tick() {
     }
 
     // Load new chunks
-    m_terrain.loadChunks(m_player.mcr_position);
+    // m_terrain.loadChunks(m_player.mcr_position);
+    // m_terrain.loadTGZ(m_player.mcr_position);
+    m_terrain.loadSurroundingTGZs(m_player.mcr_position);
 
     m_inputs.tReleased = false;
     mouseDelta.x = 0.f;
@@ -235,9 +240,19 @@ void MyGL::paintGL() {
 // for more info)
 void MyGL::renderTerrain() {
     glm::vec3 playerPos = m_player.mcr_position;
-    int x = static_cast<int>(glm::floor(playerPos.x / 16.f)) * 16;
-    int z = static_cast<int>(glm::floor(playerPos.z / 16.f)) * 16;
-    m_terrain.draw(x - 512, x + 512, z - 512, z + 512, &m_progLambert);
+    // int x = static_cast<int>(glm::floor(playerPos.x / 16.f)) * 16;
+    // int z = static_cast<int>(glm::floor(playerPos.z / 16.f)) * 16;
+    // m_terrain.draw(x - 512, x + 512, z - 512, z + 512, &m_progLambert);
+
+    int zoneX = static_cast<int>(glm::floor(playerPos.x / 64.f));
+    int zoneZ = static_cast<int>(glm::floor(playerPos.z / 64.f));
+
+    int minX = (zoneX - RENDER_RADIUS) * 64;
+    int maxX = (zoneX + RENDER_RADIUS + 1) * 64;
+    int minZ = (zoneZ - RENDER_RADIUS) * 64;
+    int maxZ = (zoneZ + RENDER_RADIUS + 1) * 64;
+
+    m_terrain.draw(minX, maxX, minZ, maxZ, &m_progLambert);
 }
 
 void MyGL::lockMouse() {

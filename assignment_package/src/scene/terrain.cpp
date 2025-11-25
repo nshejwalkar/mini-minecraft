@@ -1,7 +1,9 @@
 #include "terrain.h"
 #include "cube.h"
+#include "debug.h"
 #include <stdexcept>
 #include <iostream>
+#include "constants.h"
 
 Terrain::Terrain(OpenGLContext *context)
     : m_chunks(), m_generatedTerrain(), m_geomCube(context),
@@ -198,8 +200,88 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shader
     }
 }
 
+// add chunk to internal data structures. not any vbos
+void Terrain::addChunkInternal(int posX, int posZ) {
+    // Create new chunk
+    Chunk* chunk = instantiateChunkAt(posX, posZ);
+
+    // Generate terrain for this chunk
+    for (int i = 0; i < 16; ++i) {
+        for (int k = 0; k < 16; ++k) {
+            int worldX = posX + i;
+            int worldZ = posZ + k;
+
+            // Get height
+            int maxHeight = m_world.getHeight(worldX, worldZ);
+
+            // Fill blocks
+            for (int currHeight = 0; currHeight < 256; ++currHeight) {
+                BlockType blockType;
+
+                // Cave
+                if (m_world.isCave(worldX, currHeight, worldZ)) {
+                    blockType = m_world.getCaveBlockType(currHeight);
+                }
+
+                // Normal terrain
+                else {
+                    blockType = m_world.getBlockType(currHeight, maxHeight);
+                }
+
+                // Set block
+                if (blockType != BlockType::EMPTY) {
+                    setGlobalBlockAt(worldX, currHeight, worldZ, blockType);
+                }
+            }
+        }
+    }
+}
+
+void Terrain::addChunkVBO(int posx, int posz) {
+    uPtr<Chunk> &chunk = getChunkAt(posx, posz);
+    chunk->createVBOdata();
+}
+
+void Terrain::loadSurroundingTGZs(glm::vec3 pos, bool initial) {
+    int zoneX = static_cast<int>(glm::floor(pos.x / 64.f));
+    int zoneZ = static_cast<int>(glm::floor(pos.z / 64.f));
+
+    for(int dx=-RENDER_RADIUS; dx<=RENDER_RADIUS; dx++) {
+        for(int dz=-RENDER_RADIUS; dz<=RENDER_RADIUS; dz++) {
+            // LOG(zoneX+dx << " " << zoneZ+dz);
+            loadTGZ(zoneX+dx, zoneZ+dz, initial);
+        }
+    }
+}
+
+// Loads the 4x4 chunks and registers the zone
+void Terrain::loadTGZ(int zoneX, int zoneZ, bool initial) {
+    int64_t zoneKey = toKey(zoneX, zoneZ);
+    if (!m_generatedTerrain.count(zoneKey)) {
+        LOG("adding " << zoneX << " " << zoneZ << " to m_genTer");
+        m_generatedTerrain.insert(zoneKey);
+    }
+
+    int zoneOriginX = zoneX * 64;
+    int zoneOriginZ = zoneZ * 64;
+
+    // 4x4 chunks
+    for(int x=0; x<64; x+=16) {
+        for(int z=0; z<64; z+=16) {
+            int posX = zoneOriginX+x;
+            int posZ = zoneOriginZ+z;
+            if (hasChunkAt(posX, posZ)) {
+                continue;
+            }
+            // LOG("adding " << posX << " " << posZ << " to internal and vbo");
+            addChunkInternal(posX, posZ);
+            addChunkVBO(posX, posZ);
+        }
+    }
+}
+
 // Loads new chunks
-void Terrain::loadChunks(glm::vec3 pos) {
+void Terrain::loadChunks(glm::vec3 pos, bool initial) {
     // Player coordinates
     int posX = static_cast<int>(glm::floor(pos.x / 16.f)) * 16;
     int posZ = static_cast<int>(glm::floor(pos.z / 16.f)) * 16;
@@ -209,7 +291,7 @@ void Terrain::loadChunks(glm::vec3 pos) {
         for (int z = -32; z <= 32; z += 16) {
 
             // Skip current chunk
-            if (x == 0 && z == 0) {
+            if (x == 0 && z == 0 && !initial) {
                 continue;
             }
 
@@ -261,7 +343,6 @@ void Terrain::loadChunks(glm::vec3 pos) {
         }
     }
 }
-
 
 void Terrain::CreateTestScene()
 {

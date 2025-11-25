@@ -161,7 +161,7 @@ bool Player::gridMarch(glm::vec3 rayOrigin,
         BlockType cellType;
         try {cellType = terrain.getGlobalBlockAt(currCell.x, currCell.y, currCell.z);}
         catch (const std::out_of_range& e) {
-            LOGERR("Out of range: " << e.what());
+            // LOGERR("Out of range: " << e.what());
             break;
         }
 

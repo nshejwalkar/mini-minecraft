@@ -2,6 +2,7 @@ INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 
 SOURCES += \
+    $$PWD/blocktypeworker.cpp \
     $$PWD/main.cpp \
     $$PWD/mainwindow.cpp \
     $$PWD/mygl.cpp \
@@ -25,6 +26,7 @@ SOURCES += \
     $$PWD/scene/quad.cpp
 
 HEADERS += \
+    $$PWD/blocktypeworker.h \
     $$PWD/constants.h \
     $$PWD/debug.h \
     $$PWD/mainwindow.h \
