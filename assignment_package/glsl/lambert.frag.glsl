@@ -33,7 +33,7 @@ void main()
 
     // Material base color (before shading)
     // vec4 diffuseColor = fs_Col;
-    if (fs_anim) {
+    if (fs_anim != 0) {
         float u16 = fs_UV.x * 16.0;
         float tile = floor(u16);
         float frac = fract(u16);
@@ -43,7 +43,7 @@ void main()
         float animatedU16 = tile + newFrac;
         uv.x = animatedU16 / 16.0;
     }
-    vec4 diffuseColor = texture2D(u_Texture, uv);
+    vec4 diffuseColor = texture(u_Texture, uv);
 
     // Calculate the diffuse term for Lambert shading
     float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
