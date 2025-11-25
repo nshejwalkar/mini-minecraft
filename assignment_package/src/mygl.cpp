@@ -2,6 +2,7 @@
 #include <glm_includes.h>
 #include "constants.h"
 #include "debug.h"
+#include "scene/chunk.h"
 
 #include <iostream>
 #include <QApplication>
@@ -14,6 +15,10 @@ MyGL::MyGL(QWidget *parent)
     : OpenGLContext(parent),
     m_worldAxes(this), m_crosshair(this),
       m_progLambert(this), m_progFlat(this), m_progInstanced(this),
+      postprocessNoOp(this), postprocessWater(this), postprocessLava(this),
+      selectedPostProcessShader(&postprocessNoOp),
+      postProcessFrameBuffer(this, this->width(), this->height(), (unsigned int)this->devicePixelRatio()),
+      quad(this),
     m_terrain(this), m_player(STARTING_POS, m_terrain),
     last_time_polled(QDateTime::currentMSecsSinceEpoch()),
     last_mouse_pos(QPoint(width() / 2, height() / 2)),
@@ -81,6 +86,11 @@ void MyGL::initializeGL()
     m_progFlat.create(":/glsl/flat.vert.glsl", ":/glsl/flat.frag.glsl");
     m_progInstanced.create(":/glsl/instanced.vert.glsl", ":/glsl/lambert.frag.glsl");
 
+    // Postprocess shaders
+    postprocessNoOp.create(":/glsl/passthrough.vert.glsl", ":/glsl/noOp.frag.glsl");
+    postprocessWater.create(":/glsl/passthrough.vert.glsl", ":/glsl/water.frag.glsl");
+    postprocessLava.create(":/glsl/passthrough.vert.glsl", ":/glsl/lava.frag.glsl");
+
     // set the texture atlas slot now. it wont change
     m_progLambert.setUnifInt("u_Texture", 1);
 
@@ -90,6 +100,9 @@ void MyGL::initializeGL()
 
     m_terrain.CreateTestScene();
     lastBlockType = m_terrain.getGlobalBlockAt(STARTING_POS);
+
+    quad.createVBOdata();
+    postProcessFrameBuffer.create();
 }
 
 
@@ -104,6 +117,11 @@ void MyGL::resizeGL(int w, int h) {
     m_progLambert.setUnifMat4("u_ViewProj", viewproj);
     m_progFlat.setUnifMat4("u_ViewProj", viewproj);
     m_progInstanced.setUnifMat4("u_ViewProj", viewproj);
+
+    // Postprocess framebuffer
+    postProcessFrameBuffer.resize(w, h, (unsigned int)this->devicePixelRatio());
+    postProcessFrameBuffer.destroy();
+    postProcessFrameBuffer.create();
 
     printGLErrorLog();
 }
@@ -127,15 +145,13 @@ void MyGL::tick() {
     m_player.tick(dT, this->m_inputs);  // qint64 -> float
     sendPlayerDataToGUI(); // Updates the info in the secondary window displaying player data
 
-//     try {
-//         auto curBlockType = m_terrain.getGlobalBlockAt(m_player.mcr_position);
-//         if (curBlockType != lastBlockType) {
-//             LOG("new block type entered: " << (int)curBlockType);
-//             lastBlockType = curBlockType;
-//         }
-//     } catch (const std::out_of_range& e) {
-//         LOGERR("Out of range: " << e.what());
-//     }
+    // Get current block player is in
+    try {
+        currCameraBlock = m_terrain.getGlobalBlockAt(m_player.mcr_position);
+    }
+    catch (const std::out_of_range& e) {
+        currCameraBlock = EMPTY;
+    }
 
     // Load new chunks
     m_terrain.loadChunks(m_player.mcr_position);
@@ -162,6 +178,21 @@ void MyGL::sendPlayerDataToGUI() const {
 // MyGL's constructor links update() to a timer that fires 60 times per second,
 // so paintGL() called at a rate of 60 frames per second.
 void MyGL::paintGL() {
+    // Set postprocessing shader
+    if (currCameraBlock == WATER) {
+        selectedPostProcessShader = &postprocessWater;
+    }
+    else if (currCameraBlock == LAVA) {
+        selectedPostProcessShader = &postprocessLava;
+    }
+    else {
+        selectedPostProcessShader = &postprocessNoOp;
+    }
+
+    // Render postprocess framebuffer
+    postProcessFrameBuffer.bindFrameBuffer();
+    glViewport(0, 0, width() * devicePixelRatio(), height() * devicePixelRatio());
+
     // Clear the screen so that we only see newly drawn images
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -186,6 +217,17 @@ void MyGL::paintGL() {
     m_progFlat.setUnifMat4("u_Model", glm::mat4());
     m_progFlat.draw(m_crosshair);
     glEnable(GL_DEPTH_TEST);
+
+    // Postprocessing
+    glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
+    glViewport(0, 0, width() * devicePixelRatio(), height() * devicePixelRatio());
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    postProcessFrameBuffer.bindToTextureSlot(0);
+    selectedPostProcessShader->useMe();
+    selectedPostProcessShader->setUnifInt("u_Texture", 0);
+    selectedPostProcessShader->draw(quad);
 }
 
 // Change this so it renders the nine zones of generated

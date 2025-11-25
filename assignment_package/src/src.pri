@@ -20,7 +20,9 @@ SOURCES += \
     $$PWD/scene/camera.cpp \
     $$PWD/playerinfo.cpp \
     $$PWD/scene/chunk.cpp \
-    $$PWD/texture.cpp
+    $$PWD/texture.cpp \
+    $$PWD/framebuffer.cpp \
+    $$PWD/scene/quad.cpp
 
 HEADERS += \
     $$PWD/constants.h \
@@ -44,7 +46,9 @@ HEADERS += \
     $$PWD/scene/camera.h \
     $$PWD/playerinfo.h \
     $$PWD/scene/chunk.h \
-    $$PWD/texture.h
+    $$PWD/texture.h \
+    $$PWD/framebuffer.h \
+    $$PWD/scene/quad.h
 
 RESOURCES += \
     $$PWD/../glsl.qrc
