@@ -33,6 +33,36 @@ float World::getContinentalnessNoise(float x, float z) const {
 }
 
 //========================================================
+// Cave Functions
+//========================================================
+
+// Check if block at (x, y, z) is in a cave
+bool World::isCave(int x, int y, int z) const {
+    // if (y >= 1 && y <= CAVE_HEIGHT) {
+    //     float caveNoise = getCaveNoise(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+    //     return caveNoise < CAVE_THRESHOLD;
+    // }
+
+    return false;
+}
+
+// Get cave block type
+BlockType World::getCaveBlockType(int y) const {
+    // Under lava height
+    if (y < LAVA_HEIGHT) {
+        return BlockType::LAVA;
+    }
+
+    // Above lava height
+    return BlockType::EMPTY;
+}
+
+// Get cave noise
+float World::getCaveNoise(float x, float y, float z) const {
+    return noise.fractalPerlinNoise3D(x, y, z, CAVE_OCTAVES, CAVE_PERSISTENCE, CAVE_FREQUENCY, CAVE_LACUNARITY);
+}
+
+//========================================================
 // Helper Functions
 //========================================================
 
@@ -55,6 +85,11 @@ BlockType World::getBlockType(int currentHeight, int maxHeight) const {
     // Underground
     if (currentHeight < maxHeight - 4) {
         return BlockType::STONE;
+    }
+
+    // Bedrock 
+    if (currentHeight == 0) {
+        return BlockType::BEDROCK;
     }
 
     // Snowcap
@@ -82,4 +117,4 @@ BlockType World::getBlockType(int currentHeight, int maxHeight) const {
 
     // Grassland underground
     return BlockType::DIRT;
-}   
+}

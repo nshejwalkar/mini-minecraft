@@ -222,7 +222,19 @@ void Terrain::loadChunks(glm::vec3 pos) {
 
                     // Fill blocks
                     for (int currHeight = 0; currHeight < 256; ++currHeight) {
-                        BlockType blockType = m_world.getBlockType(currHeight, maxHeight);
+                        BlockType blockType;
+                        
+                        // Cave
+                        if (m_world.isCave(worldX, currHeight, worldZ)) {
+                            blockType = m_world.getCaveBlockType(currHeight);
+                        }
+
+                        // Normal terrain
+                        else {
+                            blockType = m_world.getBlockType(currHeight, maxHeight);
+                        }
+                        
+                        // Set block
                         if (blockType != BlockType::EMPTY) {
                             setGlobalBlockAt(worldX, currHeight, worldZ, blockType);
                         }
@@ -266,7 +278,19 @@ void Terrain::CreateTestScene()
 
             // Fill blocks
             for (int currHeight = 0; currHeight < 256; ++currHeight) {
-                BlockType blockType = m_world.getBlockType(currHeight, maxHeight);
+                BlockType blockType;
+                        
+                // Cave
+                if (m_world.isCave(worldX, currHeight, worldZ)) {
+                    blockType = m_world.getCaveBlockType(currHeight);
+                }
+
+                // Normal terrain
+                else {
+                    blockType = m_world.getBlockType(currHeight, maxHeight);
+                }
+                
+                // Set block
                 if (blockType != BlockType::EMPTY) {
                     setGlobalBlockAt(worldX, currHeight, worldZ, blockType);
                 }

@@ -6,14 +6,42 @@
 class World
 {
 private:
+
+    //========================================================
+    // World generation
+    //========================================================
+
+    // Noise generator
+    Noise noise;
+
     // Random seed
     static constexpr int SEED = 42;
 
-    // Block height constants
+    // Height constants
     static constexpr int WATER_HEIGHT = 87;
     static constexpr int SNOW_HEIGHT = 150;
     static constexpr int STONE_HEIGHT = 110;
     static constexpr int SAND_HEIGHT = 88;
+    static constexpr int CAVE_HEIGHT = 100;
+    static constexpr int LAVA_HEIGHT = 25;
+
+    //========================================================
+    // Caves
+    //========================================================
+
+    // Cave generation constants
+    static constexpr float CAVE_THRESHOLD = -0.15f;
+    static constexpr float CAVE_FREQUENCY = 0.04f;
+    static constexpr int CAVE_OCTAVES = 8;
+    static constexpr float CAVE_PERSISTENCE = 0.3f;
+    static constexpr float CAVE_LACUNARITY = 6.0f;
+
+    // Cave functions
+    float getCaveNoise(float x, float y, float z) const;
+
+    //========================================================
+    // Continentalness
+    //========================================================
 
     // Continentalness constants
     static constexpr float CONTINENTALNESS_FREQUENCY = 0.00325f;
@@ -35,10 +63,7 @@ private:
         { 0.5f, 250.0f },
     };
 
-    // Noise generator
-    Noise noise;
-
-    // Height helper functions
+    // Continentalness functions
     float evaluateContinentalness(float x) const;
     float getContinentalnessNoise(float x, float z) const;
 
@@ -49,6 +74,10 @@ public:
     // Gets the height at (x, z)
     int getHeight(float x, float z) const;
 
-    // Gets block type at current height given max height
+    // Checks if a block at (x, y, z) is in a cave
+    bool isCave(int x, int y, int z) const;
+
+    // Gets block types
     BlockType getBlockType(int currentHeight, int maxHeight) const;
+    BlockType getCaveBlockType(int y) const;
 };

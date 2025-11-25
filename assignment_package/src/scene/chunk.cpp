@@ -215,6 +215,10 @@ glm::vec4 Chunk::getColor(BlockType blockType) const {
             return glm::vec4(glm::vec3(1.f), 1.f);
         case SAND:
             return glm::vec4(glm::vec3(247.f, 233.f, 163.f) / 255.f, 1.f);
+        case LAVA:
+            return glm::vec4(glm::vec3(1.f, 0.25f, 0.f), 1.f);
+        case BEDROCK:
+            return glm::vec4(glm::vec3(0.1f, 0.1f, 0.1f), 1.f);
         default:
             return glm::vec4(glm::vec3(1.f, 0.f, 1.f), 1.f);
     }
