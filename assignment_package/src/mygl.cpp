@@ -17,8 +17,9 @@ MyGL::MyGL(QWidget *parent)
     m_terrain(this), m_player(STARTING_POS, m_terrain),
     last_time_polled(QDateTime::currentMSecsSinceEpoch()),
     last_mouse_pos(QPoint(width() / 2, height() / 2)),
-    mouseDelta(0.f,0.f), mouseRecenter(false),
-    mouseLocked(false)
+    mouseDelta(0.f,0.f), textureAtlas(this),
+    currTime(0.f),
+    mouseRecenter(false), mouseLocked(false)
 {
     // Connect the timer to a function so that when the timer ticks the function is executed
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
@@ -53,6 +54,11 @@ void MyGL::initializeGL()
 
     // Set a few settings/modes in OpenGL rendering
     glEnable(GL_DEPTH_TEST);
+
+    // alpha blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     glDepthFunc(GL_LEQUAL);
     // Set the color with which the screen is filled at the start of each render call.
     glClearColor(0.37f, 0.74f, 1.0f, 1);
@@ -66,12 +72,17 @@ void MyGL::initializeGL()
     m_worldAxes.createVBOdata();
     m_crosshair.createVBOdata();
 
+    // create and set up the texture atlas
+    textureAtlas.create(":/textures/minecraft_textures_all.png");  // default RGBA BGRA
+
     // Create and set up the diffuse shader
-    m_progLambert.create(":/glsl/lambert.vert.glsl", ":/glsl/lambert.frag.glsl");
+    m_progLambert.create(":/glsl/lambert.vert.glsl",":/glsl/lambert.frag.glsl");
     // Create and set up the flat lighting shader
     m_progFlat.create(":/glsl/flat.vert.glsl", ":/glsl/flat.frag.glsl");
     m_progInstanced.create(":/glsl/instanced.vert.glsl", ":/glsl/lambert.frag.glsl");
 
+    // set the texture atlas slot now. it wont change
+    m_progLambert.setUnifInt("u_Texture", 1);
 
     // We have to have a VAO bound in OpenGL 3.2 Core. But if we're not
     // using multiple VAOs, we can just bind one once.
@@ -103,7 +114,10 @@ void MyGL::resizeGL(int w, int h) {
 // all per-frame actions here, such as performing physics updates on all
 // entities in the scene.
 void MyGL::tick() {
+    ++currTime;
+
     update(); // Calls paintGL() as part of a larger QOpenGLWidget pipeline
+
     auto cT = QDateTime::currentMSecsSinceEpoch();
     auto dT = cT - last_time_polled;
     m_inputs.mouseX = mouseDelta.x;
@@ -151,10 +165,16 @@ void MyGL::paintGL() {
     // Clear the screen so that we only see newly drawn images
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // update time
+    m_progLambert.setUnifFloat("u_Time", currTime);
+
     glm::mat4 viewproj = m_player.mcr_camera.getViewProj();
     m_progLambert.setUnifMat4("u_ViewProj", viewproj);
     m_progFlat.setUnifMat4("u_ViewProj", viewproj);
     m_progInstanced.setUnifMat4("u_ViewProj", viewproj);
+
+    // rebind the atlas slot
+    textureAtlas.bind(1);
 
     renderTerrain();
 
@@ -168,7 +188,7 @@ void MyGL::paintGL() {
     glEnable(GL_DEPTH_TEST);
 }
 
-// TODO: Change this so it renders the nine zones of generated
+// Change this so it renders the nine zones of generated
 // terrain that surround the player (refer to Terrain::m_generatedTerrain
 // for more info)
 void MyGL::renderTerrain() {
@@ -247,6 +267,8 @@ void MyGL::keyPressEvent(QKeyEvent *e) {
         this->lockMouse();
     } else if (e->key() == Qt::Key_F) {
         m_player.flight_mode = !m_player.flight_mode;
+    } else if (e->key() == Qt::Key_P) {
+        m_player.noclip_mode = !m_player.noclip_mode;
     }
 }
 
@@ -283,20 +305,12 @@ void MyGL::mouseMoveEvent(QMouseEvent *e) {
     //          << "Modifiers:" << e->modifiers();
 
     // calculate distance from center
-    auto start = std::chrono::steady_clock::now();
+    // auto start = std::chrono::steady_clock::now();
 
     QPoint center = QPoint(width() / 2, height() / 2);
 
-    // if (mouseRecenter) {
-    //     mouseRecenter = false;
-    //     return;
-    // }
-
     QPoint cP = e->pos();
-    // if (cP == center) return;
-
     QPoint dP = cP-last_mouse_pos;
-    // QPoint dP = cP - center;
     last_mouse_pos = cP;
 
     // accumulate deltas every event, will be consumed and reset by tick() every frame
@@ -311,10 +325,7 @@ void MyGL::mouseMoveEvent(QMouseEvent *e) {
         last_mouse_pos = QPoint(width() / 2, height() / 2);
     }
 
-    // mouseRecenter = true;
-    // this->moveMouseToCenter();.
-
-    auto end = std::chrono::steady_clock::now();
+    // auto end = std::chrono::steady_clock::now();
     // LOG("Took" << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "mus");
 }
 

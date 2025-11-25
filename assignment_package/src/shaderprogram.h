@@ -49,6 +49,9 @@ public:
     void draw(Drawable &d);
     void drawInstanced(InstancedDrawable &d);
     void drawInterleaved(Drawable &d);
+
+    // void drawInterleavedOpaque(Drawable &d);
+    void drawInterleavedTransparent(Drawable &d);
     // Utility function used in create()
     char* textFileRead(const char*);
     // Utility function that prints any shader compilation errors to the console

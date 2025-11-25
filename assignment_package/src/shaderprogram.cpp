@@ -269,17 +269,22 @@ void ShaderProgram::drawInterleaved(Drawable &d) {
     if (d.bindBuffer(INTERLEAVED)) {
         if (m_attribs["vs_Pos"] != -1) {
             context->glEnableVertexAttribArray(m_attribs["vs_Pos"]);
-            context->glVertexAttribPointer(m_attribs["vs_Pos"], 4, GL_FLOAT, false, 3 * sizeof(glm::vec4), (void*)0);
+            context->glVertexAttribPointer(m_attribs["vs_Pos"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)0);
         }
 
         if (m_attribs["vs_Nor"] != -1) {
             context->glEnableVertexAttribArray(m_attribs["vs_Nor"]);
-            context->glVertexAttribPointer(m_attribs["vs_Nor"], 4, GL_FLOAT, false, 3 * sizeof(glm::vec4), (void*)(sizeof(glm::vec4)));
+            context->glVertexAttribPointer(m_attribs["vs_Nor"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)(sizeof(glm::vec4)));
         }
 
         if (m_attribs["vs_Col"] != -1) {
             context->glEnableVertexAttribArray(m_attribs["vs_Col"]);
-            context->glVertexAttribPointer(m_attribs["vs_Col"], 4, GL_FLOAT, false, 3 * sizeof(glm::vec4), (void*)(2*sizeof(glm::vec4)));
+            context->glVertexAttribPointer(m_attribs["vs_Col"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)(2*sizeof(glm::vec4)));
+        }
+
+        if (m_attribs["vs_UV"] != -1) {
+            context->glEnableVertexAttribArray(m_attribs["vs_UV"]);
+            context->glVertexAttribPointer(m_attribs["vs_UV"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)(3*sizeof(glm::vec4)));
         }
     }
 
@@ -289,6 +294,48 @@ void ShaderProgram::drawInterleaved(Drawable &d) {
     if (m_attribs["vs_Pos"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_Pos"]);
     if (m_attribs["vs_Nor"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_Nor"]);
     if (m_attribs["vs_Col"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_Col"]);
+    if (m_attribs["vs_UV"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_UV"]);
+
+    context->printGLErrorLog();
+}
+
+void ShaderProgram::drawInterleavedTransparent(Drawable &d) {
+    if(d.elemCount(INDEX_TRANSPARENT) < 0) {
+        throw std::invalid_argument(
+            "Attempting to draw a Drawable that has not initialized its count variable! Remember to set it to the length of your index array in create()."
+            );
+    }
+    useMe();
+
+    if (d.bindBuffer(INTERLEAVED_TRANSPARENT)) {
+        if (m_attribs["vs_Pos"] != -1) {
+            context->glEnableVertexAttribArray(m_attribs["vs_Pos"]);
+            context->glVertexAttribPointer(m_attribs["vs_Pos"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)0);
+        }
+
+        if (m_attribs["vs_Nor"] != -1) {
+            context->glEnableVertexAttribArray(m_attribs["vs_Nor"]);
+            context->glVertexAttribPointer(m_attribs["vs_Nor"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)(sizeof(glm::vec4)));
+        }
+
+        if (m_attribs["vs_Col"] != -1) {
+            context->glEnableVertexAttribArray(m_attribs["vs_Col"]);
+            context->glVertexAttribPointer(m_attribs["vs_Col"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)(2*sizeof(glm::vec4)));
+        }
+
+        if (m_attribs["vs_UV"] != -1) {
+            context->glEnableVertexAttribArray(m_attribs["vs_UV"]);
+            context->glVertexAttribPointer(m_attribs["vs_UV"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)(3*sizeof(glm::vec4)));
+        }
+    }
+
+    d.bindBuffer(INDEX_TRANSPARENT);
+    context->glDrawElements(d.drawMode(), d.elemCount(INDEX_TRANSPARENT), GL_UNSIGNED_INT, 0);
+
+    if (m_attribs["vs_Pos"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_Pos"]);
+    if (m_attribs["vs_Nor"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_Nor"]);
+    if (m_attribs["vs_Col"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_Col"]);
+    if (m_attribs["vs_UV"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_UV"]);
 
     context->printGLErrorLog();
 }

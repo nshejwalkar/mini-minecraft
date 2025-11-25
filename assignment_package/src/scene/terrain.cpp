@@ -168,9 +168,10 @@ Chunk* Terrain::instantiateChunkAt(int x, int z) {
     return cPtr;
 }
 
-// TODO: When you make Chunk inherit from Drawable, change this code so
+// When you make Chunk inherit from Drawable, change this code so
 // it draws each Chunk with the given ShaderProgram
 void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shaderProgram) {
+    // first render opaque
     for(int x = minX; x < maxX; x += 16) {
         for(int z = minZ; z < maxZ; z += 16) {
             if(hasChunkAt(x, z)) {
@@ -179,6 +180,19 @@ void Terrain::draw(int minX, int maxX, int minZ, int maxZ, ShaderProgram *shader
                 shaderProgram->setUnifMat4("u_Model", model);
                 shaderProgram->setUnifMat4("u_ModelInvTr", glm::inverse(glm::transpose(model)));
                 shaderProgram->drawInterleaved(*chunk);
+            }
+        }
+    }
+
+    // // then render transparent
+    for(int x = minX; x < maxX; x += 16) {
+        for(int z = minZ; z < maxZ; z += 16) {
+            if(hasChunkAt(x, z)) {
+                const uPtr<Chunk> &chunk = getChunkAt(x, z);
+                glm::mat4 model = glm::translate(glm::mat4(1.f), glm::vec3(x, 0, z));
+                shaderProgram->setUnifMat4("u_Model", model);
+                shaderProgram->setUnifMat4("u_ModelInvTr", glm::inverse(glm::transpose(model)));
+                shaderProgram->drawInterleavedTransparent(*chunk);
             }
         }
     }
@@ -274,9 +288,6 @@ void Terrain::loadChunks(glm::vec3 pos) {
 
 void Terrain::CreateTestScene()
 {
-    // TODO: DELETE THIS LINE WHEN YOU DELETE m_geomCube!
-    m_geomCube.createVBOdata();
-
     // Create the Chunks that will
     // store the blocks for our
     // initial world space
