@@ -27,7 +27,7 @@ bool Player::processClick(QMouseEvent* e, glm::ivec3* out_hit, glm::ivec3* out_p
     float out_dist;
 
     if (this->gridMarch(m_camera.mcr_position,
-                        m_forward*(3/glm::length(m_forward)),
+                        m_forward*(HIT_DISTANCE/glm::length(m_forward)),
                         mcr_terrain,
                         &out_dist,
                         out_hit,
@@ -122,14 +122,20 @@ bool Player::gridMarch(glm::vec3 rayOrigin,
                        float* out_dist,
                        glm::ivec3* out_blockHit,
                        glm::ivec3* out_prevBlock) {
+    // bool logDebug = std::abs(m_velocity.x) > 0.01f || std::abs(m_velocity.z) > 0.01f;
+
     float maxLen = glm::length(rayDirection);
     glm::ivec3 currCell = glm::ivec3(glm::floor(rayOrigin));
     glm::ivec3 prevCell = currCell;
+    // if (logDebug) {
+    //     std::cout<<rayOrigin<<std::endl;
+    //     std::cout<<glm::vec3(currCell)<<std::endl;
+    // }
     rayDirection = glm::normalize(rayDirection);
 
     float curr_t = 0.f;
     while (curr_t < maxLen) {
-        float min_t = glm::sqrt(3.f);
+        float min_t = glm::sqrt(HIT_DISTANCE);
         float interfaceAxis = -1;
         for (int i = 0; i < 3; i++) {
             if (rayDirection[i] != 0) {
@@ -161,7 +167,7 @@ bool Player::gridMarch(glm::vec3 rayOrigin,
         BlockType cellType;
         try {cellType = terrain.getGlobalBlockAt(currCell.x, currCell.y, currCell.z);}
         catch (const std::out_of_range& e) {
-            // LOGERR("Out of range: " << e.what());
+            LOGERR("Out of range: " << e.what());
             break;
         }
 
@@ -177,40 +183,102 @@ bool Player::gridMarch(glm::vec3 rayOrigin,
 }
 
 // calculate collision: for all 8 vertices' rayorigins, perform grid marching
-// grid marching should return what axis side we're hitting (x,y,z) if anything
-// m_velocity should *= with that bitmask to perform sliding
+// only checking raydirection in the direction player is moving in
+// grid marching should return the smallest distance
 glm::vec3 Player::calculateCollision() {
     std::array<glm::vec3, 8> vertices = {
-        m_position + glm::vec3(0.5,0,0.5),
-        m_position + glm::vec3(0.5,0,-0.5),
-        m_position + glm::vec3(-0.5,0,0.5),
-        m_position + glm::vec3(-0.5,0,-0.5),
-        m_position + glm::vec3(0.5,2,0.5),
-        m_position + glm::vec3(0.5,2,-0.5),
-        m_position + glm::vec3(-0.5,2,0.5),
-        m_position + glm::vec3(-0.5,2,-0.5)
+        m_position + glm::vec3(0.5,0,0.5) + glm::vec3(-PLAYER_BOUNDARY, 0, -PLAYER_BOUNDARY),
+        m_position + glm::vec3(0.5,0,-0.5) + glm::vec3(-PLAYER_BOUNDARY, 0, PLAYER_BOUNDARY),
+        m_position + glm::vec3(-0.5,0,0.5) + glm::vec3(PLAYER_BOUNDARY, 0, -PLAYER_BOUNDARY),
+        m_position + glm::vec3(-0.5,0,-0.5) + glm::vec3(PLAYER_BOUNDARY, 0, PLAYER_BOUNDARY),
+        m_position + glm::vec3(0.5,2,0.5) + glm::vec3(-PLAYER_BOUNDARY, 0, -PLAYER_BOUNDARY),
+        m_position + glm::vec3(0.5,2,-0.5) + glm::vec3(-PLAYER_BOUNDARY, 0, PLAYER_BOUNDARY),
+        m_position + glm::vec3(-0.5,2,0.5) + glm::vec3(PLAYER_BOUNDARY, 0, -PLAYER_BOUNDARY),
+        m_position + glm::vec3(-0.5,2,-0.5) + glm::vec3(PLAYER_BOUNDARY, 0, PLAYER_BOUNDARY)
     };
     glm::vec3 smallestCollision = glm::vec3(1000);
-    for (auto vertex : vertices) {
+
+    bool logDebug = false;//std::abs(m_velocity.x) > 0.01f || std::abs(m_velocity.z) > 0.01f;
+    if (logDebug) {
+        std::cout << "=== COLLISION DEBUG ===" << std::endl;
+        std::cout << "Player pos: " << m_position.x << ", " << m_position.y << ", " << m_position.z << std::endl;
+        std::cout << "Velocity: " << m_velocity.x << ", " << m_velocity.y << ", " << m_velocity.z << std::endl;
+    }
+
+    for (int i = 0; i < 8; i++) {
+        auto vertex = vertices[i];
+
+        if (logDebug) {  // Log vertices
+            if (i<4) {
+                std::cout << "\n--- Bottom vertex " << i << ": "
+                          << vertex.x << ", " << vertex.y << ", " << vertex.z << std::endl;
+            }
+            else if (i<8) {
+                std::cout << "\n--- Top vertex " << i << ": "
+                          << vertex.x << ", " << vertex.y << ", " << vertex.z << std::endl;
+            }
+            else if (i<12) {
+                std::cout << "\n--- Middle vertex " << i << ": "
+                          << vertex.x << ", " << vertex.y << ", " << vertex.z << std::endl;
+            }
+        }
+
         float out_dist_x;
         glm::ivec3 out_hit_x;
         if (m_velocity.x != 0 && this->gridMarch(vertex, glm::vec3(m_velocity.x,0,0), mcr_terrain, &out_dist_x, &out_hit_x)) {
-            // LOG("COLLISION! out_dist: " << out_dist << ", out_hit: " << out_hit.x << ", " << out_hit.y << ", " << out_hit.z);
+            // LOG("COLLISION! out_dist: " << out_dwwwa wsist << ", out_hit: " << out_hit.x << ", " << out_hit.y << ", " << out_hit.z);
+            if (logDebug) {
+                std::cout << "  X collision at dist=" << out_dist_x
+                          << ", block=" << out_hit_x.x << "," << out_hit_x.y << "," << out_hit_x.z << std::endl;
+            }
             smallestCollision.x = glm::min(out_dist_x, smallestCollision.x);
+        }
+
+        float out_dist_x_down;
+        glm::ivec3 out_hit_x_down;
+        if (m_velocity.x != 0 && this->gridMarch(vertex+glm::vec3(0,-1,0), glm::vec3(m_velocity.x,0,0), mcr_terrain, &out_dist_x_down, &out_hit_x_down)) {
+            if (logDebug) {
+                std::cout << "  X-down collision at dist=" << out_dist_x_down
+                          << ", block=" << out_hit_x_down.x << "," << out_hit_x_down.y << "," << out_hit_x_down.z << std::endl;
+            }
+            smallestCollision.x = glm::min(out_dist_x_down, smallestCollision.x);
         }
 
         float out_dist_y;
         glm::ivec3 out_hit_y;
         if (m_velocity.y != 0 && this->gridMarch(vertex, glm::vec3(0,m_velocity.y,0), mcr_terrain, &out_dist_y, &out_hit_y)) {
+            if (logDebug) {
+                std::cout << "  Y collision at dist=" << out_dist_y
+                          << ", block=" << out_hit_y.x << "," << out_hit_y.y << "," << out_hit_y.z << std::endl;
+            }
             smallestCollision.y = glm::min(out_dist_y, smallestCollision.y);
         }
 
         float out_dist_z;
         glm::ivec3 out_hit_z;
         if (m_velocity.z != 0 && this->gridMarch(vertex, glm::vec3(0,0,m_velocity.z), mcr_terrain, &out_dist_z, &out_hit_z)) {
+            if (logDebug) {
+                std::cout << "  Z-down collision at dist=" << out_dist_z
+                          << ", block=" << out_hit_z.x << "," << out_hit_z.y << "," << out_hit_z.z << std::endl;
+            }
             smallestCollision.z = glm::min(out_dist_z, smallestCollision.z);
         }
+
+        float out_dist_z_down;
+        glm::ivec3 out_hit_z_down;
+        if (m_velocity.z != 0 && this->gridMarch(vertex+glm::vec3(0,-1,0), glm::vec3(0,0,m_velocity.z), mcr_terrain, &out_dist_z_down, &out_hit_z_down)) {
+            if (logDebug) {
+                std::cout << "  X-down collision at dist=" << out_dist_z_down
+                          << ", block=" << out_hit_z_down.x << "," << out_hit_z_down.y << "," << out_hit_z_down.z << std::endl;
+            }
+            smallestCollision.z = glm::min(out_dist_z_down, smallestCollision.z);
+        }
     }
+
+    if (logDebug) {
+        std::cout << "Final min collision: " << smallestCollision.x << ", " << smallestCollision.y << ", " << smallestCollision.z << std::endl;
+    }
+
     return smallestCollision;
 }
 
@@ -260,6 +328,7 @@ void Player::computePhysics(float dT, const Terrain &terrain) {
         glm::vec3 minColDist = this->calculateCollision();
 
         // LOG("standing on " << m_position.x << ", " << m_position.y << ", " << m_position.z);
+        // LOG("vel " << m_velocity << " exp " << exp_dist << " smcol " << minColDist);
 
         if (std::abs(exp_dist.x) > minColDist.x) {
             m_velocity.x = 0;
@@ -280,6 +349,10 @@ void Player::computePhysics(float dT, const Terrain &terrain) {
             m_velocity.y = 0.1f;
         }
     }
+
+    // if (std::abs(m_velocity.x) < 0.001) m_velocity.x = 0.f;
+    // if (std::abs(m_velocity.y) < 0.001) m_velocity.y = 0.f;
+    // if (std::abs(m_velocity.z) < 0.001) m_velocity.z = 0.f;
 
     moveAlongVector(m_velocity);
 
