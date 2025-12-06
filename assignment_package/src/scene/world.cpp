@@ -40,7 +40,17 @@ float World::getContinentalnessNoise(float x, float z) const {
 bool World::isCave(int x, int y, int z) const {
     if (y >= 1 && y <= CAVE_HEIGHT) {
         float caveNoise = getCaveNoise(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
-        return caveNoise < CAVE_THRESHOLD;
+        
+        // Taper caves off towards CAVE_HEIGHT
+        float taperStart = CAVE_HEIGHT * 0.7f;
+        if (y > taperStart) {
+            float t = (y - taperStart) / (CAVE_HEIGHT - taperStart);
+            float scaledNoise = caveNoise * (1.0f - t);
+            return scaledNoise > CAVE_THRESHOLD;
+        }
+        else {
+            return caveNoise > CAVE_THRESHOLD;
+        }
     }
 
     return false;
@@ -59,7 +69,7 @@ BlockType World::getCaveBlockType(int y) const {
 
 // Get cave noise
 float World::getCaveNoise(float x, float y, float z) const {
-    return noise.fractalPerlinNoise3D(x, y, z, CAVE_OCTAVES, CAVE_PERSISTENCE, CAVE_FREQUENCY, CAVE_LACUNARITY);
+    return noise.fractalSimplexNoise3D(x, y, z, CAVE_OCTAVES, CAVE_PERSISTENCE, CAVE_FREQUENCY, CAVE_LACUNARITY);
 }
 
 //========================================================
