@@ -77,18 +77,17 @@ void Chunk::createVBOdata() {
                 zPos = (z < 15)  ? getLocalBlockAt(x, y, z + 1) : (m_neighbors.at(ZPOS) ? m_neighbors.at(ZPOS)->getLocalBlockAt(x, y, 0)  : EMPTY);
                 zNeg = (z > 0)   ? getLocalBlockAt(x, y, z - 1) : (m_neighbors.at(ZNEG) ? m_neighbors.at(ZNEG)->getLocalBlockAt(x, y, 15) : EMPTY);
                 
-                // Get block color, uv and position
                 glm::vec4 color = getColor(currBlock);
 
                 glm::vec4 sideuv_bl = getBottomLeftUV(currBlock, false);
-                glm::vec4 sideuv_tl = glm::vec4(0,1,0,0)/16.f + sideuv_bl;
-                glm::vec4 sideuv_br = glm::vec4(1,0,0,0)/16.f + sideuv_bl;
-                glm::vec4 sideuv_tr = glm::vec4(1,1,0,0)/16.f + sideuv_bl;
+                glm::vec4 sideuv_tl = glm::vec4(0,1.f/32.f,0,0) + sideuv_bl;
+                glm::vec4 sideuv_br = glm::vec4(1.f/64.f,0,0,0) + sideuv_bl;
+                glm::vec4 sideuv_tr = glm::vec4(1.f/64.f,1.f/32.f,0,0) + sideuv_bl;
 
                 glm::vec4 topuv_bl = getBottomLeftUV(currBlock, true);
-                glm::vec4 topuv_tl = glm::vec4(0,1,0,0)/16.f + topuv_bl;
-                glm::vec4 topuv_br = glm::vec4(1,0,0,0)/16.f + topuv_bl;
-                glm::vec4 topuv_tr = glm::vec4(1,1,0,0)/16.f + topuv_bl;
+                glm::vec4 topuv_tl = glm::vec4(0,1.f/32.f,0,0) + topuv_bl;
+                glm::vec4 topuv_br = glm::vec4(1.f/64.f,0,0,0) + topuv_bl;
+                glm::vec4 topuv_tr = glm::vec4(1.f/64.f,1.f/32.f,0,0) + topuv_bl;
 
                 glm::vec4 pos(x, y, z, 0);
 
@@ -280,7 +279,7 @@ glm::vec4 Chunk::getColor(BlockType blockType) const {
         case STONE:
             return glm::vec4(glm::vec3(0.5f), 1.f);
         case WATER:
-            return glm::vec4(glm::vec3(0.f, 0.f, 0.75f), 0.5f);
+            return glm::vec4(glm::vec3(0.f, 0.f, 0.75f), 1.f);
         case SNOW:
             return glm::vec4(glm::vec3(1.f), 1.f);
         case SAND:
@@ -289,6 +288,8 @@ glm::vec4 Chunk::getColor(BlockType blockType) const {
             return glm::vec4(glm::vec3(1.f, 0.25f, 0.f), 0.5f);
         case BEDROCK:
             return glm::vec4(glm::vec3(0.1f, 0.1f, 0.1f), 1.f);
+        case SNOWY_GRASS:
+            return glm::vec4(glm::vec3(1.f), 1.f);
         default:
             return glm::vec4(glm::vec3(1.f, 0.f, 1.f), 1.f);
     }
@@ -296,27 +297,40 @@ glm::vec4 Chunk::getColor(BlockType blockType) const {
 
 glm::vec4 Chunk::getBottomLeftUV(BlockType blockType, bool top) const {
     bool anim = (blockType == WATER || blockType == LAVA);
-    float flag = anim ? 1.f : 0.f;  // animated flag fits into uv.z
-    // float flag = 0.f;
+    float animFlag = anim ? 1.f : 0.f;
 
     switch(blockType) {
         case GRASS:
-            if (top) return glm::vec4(glm::vec2(8.f, 13.f) / 16.f, flag, 0.f);
-            else     return glm::vec4(glm::vec2(3.f, 15.f) / 16.f, flag, 0.f);
+            if (top) {
+                // Biome tinting overlay (w = 1)
+                return glm::vec4(glm::vec2(29.f, 32.f - 9.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 1.f);
+            }
+            else {
+                // Biome tinting overlay (w = 2)
+                return glm::vec4(glm::vec2(28.f, 32.f - 7.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 2.f);
+            }
         case DIRT:
-            return glm::vec4(glm::vec2(2.f, 15.f) / 16.f, flag, 0.f);
+            return glm::vec4(glm::vec2(24.f, 32.f - 2.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
         case STONE:
-            return glm::vec4(glm::vec2(1.f, 15.f) / 16.f, flag, 0.f);
+            return glm::vec4(glm::vec2(22.f, 32.f - 28.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
         case WATER:
-            return glm::vec4(glm::vec2(13.f, 3.f) / 16.f, flag, 0.f);
+            // Biome tinting overlay (w = 3)
+            return glm::vec4(glm::vec2(6.f, 32.f - 2.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 3.f);
         case LAVA:
-            return glm::vec4(glm::vec2(13.f, 1.f) / 16.f, flag, 0.f);
+            return glm::vec4(glm::vec2(4.f, 32.f - 2.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
         case BEDROCK:
-            return glm::vec4(glm::vec2(1.f, 14.f) / 16.f, flag, 0.f);
+            return glm::vec4(glm::vec2(11.f, 32.f - 0.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
         case SNOW:
-            return glm::vec4(glm::vec2(2.f, 11.f) / 16.f, flag, 0.f);
+            return glm::vec4(glm::vec2(1.f, 32.f - 28.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+        case SNOWY_GRASS:
+            if (top) {
+                return glm::vec4(glm::vec2(1.f, 32.f - 28.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+            }
+            else {
+                return glm::vec4(glm::vec2(28.f, 32.f - 9.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+            }
         case SAND:
-            return glm::vec4(glm::vec2(2.f, 14.f) / 16.f, flag, 0.f);
+            return glm::vec4(glm::vec2(1.f, 32.f - 26.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
         default:
             return glm::vec4(0,0,0,0);
         }
