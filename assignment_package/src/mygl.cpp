@@ -210,20 +210,22 @@ void MyGL::paintGL() {
     m_progLambert.setUnifFloat("u_Time", currTime);
 
     glm::mat4 viewproj;
+    glm::mat4 view;
 
     if (!m_thirdPersonDebug) {
         // normal
         viewproj = m_player.mcr_camera.getViewProj();
+        view = m_player.mcr_camera.getView();
     } else {
         // debug cam view
         glm::vec3 playerPos = m_player.mcr_position;
         glm::vec3 forward = m_player.mcr_camera.m_forward;
-        glm::vec3 up = glm::vec3(0.f, 1.f, 0.f);
         float distBehind = 6.f;
         float heightUp = 2.5f;
+        glm::vec3 up = glm::vec3(0.f, 1.f, 0.f);
         glm::vec3 eye = playerPos - forward * distBehind + up * heightUp;
-        glm::vec3 center = playerPos + glm::vec3(0.f, 1.f, 0.f);  // look at mid-body
-        glm::mat4 view = glm::lookAt(eye, center, up);
+        glm::vec3 center = playerPos + glm::vec3(0.f, 1.f, 0.f);  // look at center of body
+        view = glm::lookAt(eye, center, up);
 
         float fovy = glm::radians(60.f);
         float aspect = float(width()) / float(height());
@@ -232,6 +234,7 @@ void MyGL::paintGL() {
         viewproj = proj*view;
     }
 
+    m_progLambert.setUnifMat4("u_View", view);
     m_progLambert.setUnifMat4("u_ViewProj", viewproj);
     m_progFlat.setUnifMat4("u_ViewProj", viewproj);
     m_progInstanced.setUnifMat4("u_ViewProj", viewproj);
@@ -244,7 +247,7 @@ void MyGL::paintGL() {
     if (m_thirdPersonDebug) {
         m_playerbounds.updateFromVerts(m_player.getCollisionVerts());
         m_progFlat.setUnifMat4("u_ViewProj", viewproj);
-        m_progFlat.setUnifMat4("u_Model", glm::mat4(1.f));
+        m_progFlat.setUnifMat4("ddu_Model", glm::mat4(1.f));
         glPointSize(8.f);
         m_progFlat.draw(m_playerbounds);
         glPointSize(1.f);

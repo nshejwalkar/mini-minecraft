@@ -18,6 +18,7 @@ uniform float u_Time;
 // These are the interpolated values out of the rasterizer, so you can't know
 // their specific values without knowing the vertices that contributed to them
 in vec4 fs_Pos;
+in vec3 fs_ViewPos;
 in vec4 fs_Nor;
 in vec4 fs_LightVec;
 in vec4 fs_Col;
@@ -33,6 +34,8 @@ void main()
 
     // Material base color (before shading)
     // vec4 diffuseColor = fs_Col;
+
+    // ANIMATION
     if (fs_anim != 0) {
         float u16 = fs_UV.x * 16.0;
         float tile = floor(u16);
@@ -43,18 +46,28 @@ void main()
         float animatedU16 = tile + newFrac;
         uv.x = animatedU16 / 16.0;
     }
-    vec4 diffuseColor = texture(u_Texture, uv);
+    vec4 diffuseColor = texture2D(u_Texture, uv);
 
+    // LAMBERT SHADING
     // Calculate the diffuse term for Lambert shading
     float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
     // Avoid negative lighting values
     diffuseTerm = clamp(diffuseTerm, 0, 1);
-
-    float ambientTerm = 0.2;
+    float ambientTerm = 0.35;
     float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
     //to simulate ambient lighting. This ensures that faces that are not
     //lit by our point light are not completely black.
+    vec4 lambert_col = vec4(diffuseColor.rgb * lightIntensity, diffuseColor.a);
 
-    // Compute final shaded color
-    out_Col = vec4(diffuseColor.rgb * lightIntensity, diffuseColor.a);
+    // FOG
+    float zdepth = -fs_ViewPos.z;
+    float fogNear = 80.0;
+    float fogFar = 200.0;
+    float fogInterp = clamp((zdepth - fogNear) / (fogFar - fogNear), 0.0, 1.0);
+    vec3 fogColor = vec3(0.75, 0.78, 0.80);
+    vec3 finalRgb = mix(lambert_col.rgb, fogColor, fogInterp);
+
+    out_Col = vec4(finalRgb, lambert_col.a);
+    // out_Col = vec4(vec3(zdepth / 100.0), 1.0);
+    // out_Col = vec4(vec3(clamp(zdepth / 100.0, 0.0, 1.0)), 1.0);
 }

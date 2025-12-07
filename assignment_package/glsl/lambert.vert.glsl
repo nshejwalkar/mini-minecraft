@@ -20,6 +20,8 @@ uniform mat4 u_ViewProj;    // The matrix that defines the camera's transformati
                             // We've written a static matrix for you to use for HW2,
                             // but in HW3 you'll have to generate one yourself
 
+uniform mat4 u_View;
+
 uniform vec4 u_Color;       // When drawing the cube instance, we'll set our uniform color to represent different block types.
 
 in vec4 vs_Pos;             // The array of vertex positions passed to the shader
@@ -33,16 +35,23 @@ out vec4 fs_LightVec;       // The direction in which our virtual light lies, re
 out vec4 fs_Col;            // The color of each vertex. This is implicitly passed to the fragment shader.
 out vec2 fs_UV;
 flat out int fs_anim;
+out vec3 fs_ViewPos;        // position in view space (for fog)
 
 const vec4 lightDir = normalize(vec4(0.5, 1, 0.75, 0));  // The direction of our virtual light, which is used to compute the shading of
                                         // the geometry in the fragment shader.
 
 void main()
 {
-    fs_Pos = vs_Pos;
+    vec4 worldPos = u_Model * vs_Pos;   // Temporarily store the transformed vertex positions for use below
+
+    fs_Pos = worldPos;
     fs_Col = vs_Col;                         // Pass the vertex colors to the fragment shader for interpolation
     fs_UV = vs_UV.xy;
     fs_anim = int(vs_UV.z);
+    fs_LightVec = lightDir;                 // Compute the direction in which the light source lies
+
+    vec4 viewPos = u_View * worldPos;
+    fs_ViewPos = viewPos.xyz;
 
     mat3 invTranspose = mat3(u_ModelInvTr);
     fs_Nor = vec4(invTranspose * vec3(vs_Nor), 0);          // Pass the vertex normals to the fragment shader for interpolation.
@@ -51,11 +60,6 @@ void main()
                                                             // perpendicular to the surface after the surface is transformed by
                                                             // the model matrix.
 
-
-    vec4 modelposition = u_Model * vs_Pos;   // Temporarily store the transformed vertex positions for use below
-
-    fs_LightVec = (lightDir);  // Compute the direction in which the light source lies
-
-    gl_Position = u_ViewProj * modelposition;// gl_Position is a built-in variable of OpenGL which is
+    gl_Position = u_ViewProj * worldPos;// gl_Position is a built-in variable of OpenGL which is
                                              // used to render the final positions of the geometry's vertices
 }

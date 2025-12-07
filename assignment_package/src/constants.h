@@ -12,7 +12,7 @@ constexpr float MAX_TELEPORT = 200;
 constexpr float V_EPS = 0.0001f;
 
 /****** RENDERING ******/
-constexpr int RENDER_RADIUS = 0;  // tgzs
+constexpr int RENDER_RADIUS = 2;  // tgzs
 #define USE_TERRAIN_THREADS 1  // for debug
 
 /******** OTHER ********/
