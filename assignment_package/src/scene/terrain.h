@@ -8,7 +8,7 @@
 #include <unordered_set>
 #include "shaderprogram.h"
 #include "cube.h"
-
+#include <QMutex>
 
 //using namespace std;
 
@@ -21,6 +21,8 @@ glm::ivec2 toCoords(int64_t k);
 // not all Chunks will be drawn at any given time as the world
 // expands.
 class Terrain {
+    friend class BlockTypeWorker;
+    friend class VBOWorker;
 private:
     // Stores every Chunk according to the location of its lower-left corner
     // in world space.
@@ -61,6 +63,20 @@ private:
     // World generator
     World m_world;
 
+    // this is
+    struct VBOData {
+        std::vector<GLuint> idxOpaqueData;
+        std::vector<GLuint> idxTransData;
+        std::vector<glm::vec4> vertexOpaqueData;
+        std::vector<glm::vec4> vertexTransData;
+        int64_t chunkMapKey;
+    };
+
+    std::vector<Chunk*> chunksList;
+    std::vector<VBOData> VBODataList;
+    QMutex chunksMutex;
+    QMutex VBODataMutex;
+
     OpenGLContext* mp_context;
 
 public:
@@ -71,6 +87,11 @@ public:
     // our chunk map at the given coordinates.
     // Returns a pointer to the created Chunk.
     Chunk* instantiateChunkAt(int x, int z);
+
+    // two functions that split up the work of Terrain::instantiateChunkAt for multithreading
+    Chunk* createChunkAt(int x, int z);
+    void linkChunkNeighbors(Chunk* chunk);
+
     // Do these world-space coordinates lie within
     // a Chunk that exists?
     bool hasChunkAt(int x, int z) const;

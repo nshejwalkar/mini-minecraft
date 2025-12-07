@@ -157,7 +157,7 @@ void MyGL::tick() {
     }
 
     BlockType cb = m_terrain.getGlobalBlockAt(m_player.mcr_position);
-    // LOG("current blocktype is" << static_cast<unsigned>(cb));
+    // LOG("current blocktype is " << static_cast<unsigned>(cb));
 
     // Load new chunks
     // m_terrain.loadChunks(m_player.mcr_position);
