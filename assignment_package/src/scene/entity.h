@@ -33,6 +33,7 @@ inline std::ostream& operator<<(std::ostream& os, const InputBundle& ib) {
 }
 
 class Entity {
+    friend class MyGL;
 protected:
     // Vectors that define the axes of our local coordinate system
     glm::vec3 m_forward, m_right, m_up;

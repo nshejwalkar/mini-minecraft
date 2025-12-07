@@ -8,6 +8,7 @@ SOURCES += \
     $$PWD/mygl.cpp \
     $$PWD/scene/crosshair.cpp \
     $$PWD/scene/noise.cpp \
+    $$PWD/scene/playerbounds.cpp \
     $$PWD/scene/world.cpp \
     $$PWD/shaderprogram.cpp \
     $$PWD/drawable.cpp \
@@ -34,6 +35,7 @@ HEADERS += \
     $$PWD/mygl.h \
     $$PWD/scene/crosshair.h \
     $$PWD/scene/noise.h \
+    $$PWD/scene/playerbounds.h \
     $$PWD/scene/world.h \
     $$PWD/shaderprogram.h \
     $$PWD/drawable.h \

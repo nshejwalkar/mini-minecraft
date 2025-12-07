@@ -23,6 +23,20 @@ Player::~Player()
 //     *this = Player(pos, terrain);
 // }
 
+std::array<glm::vec3, 8> Player::getCollisionVerts() const {
+    std::array<glm::vec3, 8> vertices = {
+        m_position + glm::vec3(0.5,0,0.5) + glm::vec3(-PLAYER_BOUNDARY, 0, -PLAYER_BOUNDARY),
+        m_position + glm::vec3(0.5,0,-0.5) + glm::vec3(-PLAYER_BOUNDARY, 0, PLAYER_BOUNDARY),
+        m_position + glm::vec3(-0.5,0,0.5) + glm::vec3(PLAYER_BOUNDARY, 0, -PLAYER_BOUNDARY),
+        m_position + glm::vec3(-0.5,0,-0.5) + glm::vec3(PLAYER_BOUNDARY, 0, PLAYER_BOUNDARY),
+        m_position + glm::vec3(0.5,2,0.5) + glm::vec3(-PLAYER_BOUNDARY, 0, -PLAYER_BOUNDARY),
+        m_position + glm::vec3(0.5,2,-0.5) + glm::vec3(-PLAYER_BOUNDARY, 0, PLAYER_BOUNDARY),
+        m_position + glm::vec3(-0.5,2,0.5) + glm::vec3(PLAYER_BOUNDARY, 0, -PLAYER_BOUNDARY),
+        m_position + glm::vec3(-0.5,2,-0.5) + glm::vec3(PLAYER_BOUNDARY, 0, PLAYER_BOUNDARY)
+    };
+    return vertices;
+}
+
 bool Player::processClick(QMouseEvent* e, glm::ivec3* out_hit, glm::ivec3* out_prevBlock) {
     float out_dist;
 
