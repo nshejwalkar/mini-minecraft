@@ -295,7 +295,6 @@ void ShaderProgram::drawInterleaved(Drawable &d) {
     if (m_attribs["vs_Nor"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_Nor"]);
     if (m_attribs["vs_Col"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_Col"]);
     if (m_attribs["vs_UV"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_UV"]);
-    // if (m_attribs.count("vs_UV") && m_attribs["vs_UV"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_UV"]);
     context->printGLErrorLog();
 }
 
@@ -335,7 +334,7 @@ void ShaderProgram::drawInterleavedTransparent(Drawable &d) {
     if (m_attribs["vs_Pos"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_Pos"]);
     if (m_attribs["vs_Nor"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_Nor"]);
     if (m_attribs["vs_Col"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_Col"]);
-    if (m_attribs.count("vs_UV") && m_attribs["vs_UV"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_UV"]);
+    if (m_attribs["vs_UV"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_UV"]);
 
     context->printGLErrorLog();
 }
