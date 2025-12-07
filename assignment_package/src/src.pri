@@ -23,7 +23,8 @@ SOURCES += \
     $$PWD/scene/chunk.cpp \
     $$PWD/texture.cpp \
     $$PWD/framebuffer.cpp \
-    $$PWD/scene/quad.cpp
+    $$PWD/scene/quad.cpp \
+    $$PWD/vboworker.cpp
 
 HEADERS += \
     $$PWD/blocktypeworker.h \
@@ -50,7 +51,8 @@ HEADERS += \
     $$PWD/scene/chunk.h \
     $$PWD/texture.h \
     $$PWD/framebuffer.h \
-    $$PWD/scene/quad.h
+    $$PWD/scene/quad.h \
+    $$PWD/vboworker.h
 
 RESOURCES += \
     $$PWD/../glsl.qrc

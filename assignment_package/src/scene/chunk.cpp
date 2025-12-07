@@ -46,14 +46,34 @@ void Chunk::createVBOdata() {
     // Store vertex and index data
     std::vector<glm::vec4> vertexOpaqueData;
     std::vector<GLuint> idxOpaqueData;
-    int numOpaqueFaces = 0;
 
     std::vector<glm::vec4> vertexTransData;
     std::vector<GLuint> idxTransData;
+
+    // populate all vectors
+    this->populateAllData(idxOpaqueData,
+                          idxTransData,
+                          vertexOpaqueData,
+                          vertexTransData);
+
+    // buffer all data
+    this->bufferAllData(idxOpaqueData,
+                        idxTransData,
+                        vertexOpaqueData,
+                        vertexTransData);
+}
+
+void Chunk::populateAllData(std::vector<GLuint>& idxOpaqueData,
+                     std::vector<GLuint>& idxTransData,
+                     std::vector<glm::vec4>& vertexOpaqueData,
+                            std::vector<glm::vec4>& vertexTransData) {
+
+    std::vector<glm::vec4>* vertexData;  // just a pointer
+
+    int numOpaqueFaces = 0;
     int numTransFaces = 0;
 
-    std::vector<glm::vec4>* vertexData;
-    int* numFaces;
+    int* numFaces;  // also just a pointer
 
     // Iterate over all blocks in a chunk
     for (int x = 0; x < 16; ++x) {
@@ -76,7 +96,8 @@ void Chunk::createVBOdata() {
                 yNeg = (y > 0)   ? getLocalBlockAt(x, y - 1, z) : EMPTY;
                 zPos = (z < 15)  ? getLocalBlockAt(x, y, z + 1) : (m_neighbors.at(ZPOS) ? m_neighbors.at(ZPOS)->getLocalBlockAt(x, y, 0)  : EMPTY);
                 zNeg = (z > 0)   ? getLocalBlockAt(x, y, z - 1) : (m_neighbors.at(ZNEG) ? m_neighbors.at(ZNEG)->getLocalBlockAt(x, y, 15) : EMPTY);
-                
+
+                // Get block color, uv and position
                 glm::vec4 color = getColor(currBlock);
 
                 glm::vec4 sideuv_bl = getBottomLeftUV(currBlock, false);
@@ -247,26 +268,32 @@ void Chunk::createVBOdata() {
         faceT += 4;
     }
 
+}
+
+void Chunk::bufferAllData(std::vector<GLuint>& idxOpaqueData,
+                          std::vector<GLuint>& idxTransData,
+                          std::vector<glm::vec4>& vertexOpaqueData,
+                          std::vector<glm::vec4>& vertexTransData) {
     // Buffer data
-    indexCounts[INDEX] = idxOpaqueData.size();
-    indexCounts[INDEX_TRANSPARENT] = idxTransData.size();
-    
+    this->indexCounts[INDEX] = idxOpaqueData.size();
+    this->indexCounts[INDEX_TRANSPARENT] = idxTransData.size();
+
     // generate all buffers
     generateBuffer(INTERLEAVED);
     bindBuffer(INTERLEAVED);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, vertexOpaqueData.size() * sizeof(glm::vec4), vertexOpaqueData.data(), GL_STATIC_DRAW);
-    
+    this->mp_context->glBufferData(GL_ARRAY_BUFFER, vertexOpaqueData.size() * sizeof(glm::vec4), vertexOpaqueData.data(), GL_STATIC_DRAW);
+
     generateBuffer(INDEX);
     bindBuffer(INDEX);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, idxOpaqueData.size() * sizeof(GLuint), idxOpaqueData.data(), GL_STATIC_DRAW);
+    this->mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, idxOpaqueData.size() * sizeof(GLuint), idxOpaqueData.data(), GL_STATIC_DRAW);
 
     generateBuffer(INTERLEAVED_TRANSPARENT);
     bindBuffer(INTERLEAVED_TRANSPARENT);
-    mp_context->glBufferData(GL_ARRAY_BUFFER, vertexTransData.size() * sizeof(glm::vec4), vertexTransData.data(), GL_STATIC_DRAW);
+    this->mp_context->glBufferData(GL_ARRAY_BUFFER, vertexTransData.size() * sizeof(glm::vec4), vertexTransData.data(), GL_STATIC_DRAW);
 
     generateBuffer(INDEX_TRANSPARENT);
     bindBuffer(INDEX_TRANSPARENT);
-    mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, idxTransData.size() * sizeof(GLuint), idxTransData.data(), GL_STATIC_DRAW);
+    this->mp_context->glBufferData(GL_ELEMENT_ARRAY_BUFFER, idxTransData.size() * sizeof(GLuint), idxTransData.data(), GL_STATIC_DRAW);
 }
 
 // Get color for a block type

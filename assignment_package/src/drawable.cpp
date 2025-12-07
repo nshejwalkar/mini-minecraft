@@ -35,6 +35,8 @@ GLenum Drawable::drawMode() {
 
 int Drawable::elemCount(BufferType t) {
     return indexCounts[t];
+    // auto it = indexCounts.find(t);
+    // return it != indexCounts.end() ? it->second : 0;
 }
 
 void Drawable::generateBuffer(BufferType buf) {

@@ -156,6 +156,9 @@ void MyGL::tick() {
         currCameraBlock = EMPTY;
     }
 
+    BlockType cb = m_terrain.getGlobalBlockAt(m_player.mcr_position);
+    // LOG("current blocktype is " << static_cast<unsigned>(cb));
+
     // Load new chunks
     // m_terrain.loadChunks(m_player.mcr_position);
     // m_terrain.loadTGZ(m_player.mcr_position);
@@ -196,7 +199,8 @@ void MyGL::paintGL() {
 
     // Render postprocess framebuffer
     postProcessFrameBuffer.bindFrameBuffer();
-    glViewport(0, 0, width() * devicePixelRatio(), height() * devicePixelRatio());
+    // glViewport(0, 0, width() * devicePixelRatio(), height() * devicePixelRatio());
+    glViewport(0, 0, width(), height());
 
     // Clear the screen so that we only see newly drawn images
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

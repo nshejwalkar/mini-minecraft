@@ -42,11 +42,11 @@ struct EnumHash {
 
 // have Chunk inherit from Drawable
 class Chunk : public Drawable {
+    friend class Terrain;
 private:
     // All of the blocks contained within this Chunk
     std::array<BlockType, 65536> m_blocks;
-    // The coordinates of the chunk's lower-left corner in world space
-    int minX, minZ;
+
     // This Chunk's four neighbors to the north, south, east, and west
     // The third input to this map just lets us use a Direction as
     // a key for this map.
@@ -60,6 +60,9 @@ private:
     glm::vec4 getBottomLeftUV(BlockType blockType, bool top = false) const;
 
 public:
+    // The coordinates of the chunk's lower-left corner in world space
+    int minX, minZ;
+
     Chunk(OpenGLContext* context, int x, int z);
     BlockType getLocalBlockAt(unsigned int x, unsigned int y, unsigned int z) const;
     BlockType getLocalBlockAt(int x, int y, int z) const;
@@ -68,4 +71,15 @@ public:
     
     // Create VBO data
     void createVBOdata() override;
+
+    // two methods that together act the same as createVBOdata
+    void populateAllData(std::vector<GLuint>& idxOpaqueData,
+                       std::vector<GLuint>& idxTransData,
+                       std::vector<glm::vec4>& vertexOpaqueData,
+                       std::vector<glm::vec4>& vertexTransData);
+
+    void bufferAllData(std::vector<GLuint>& idxOpaqueData,
+                       std::vector<GLuint>& idxTransData,
+                       std::vector<glm::vec4>& vertexOpaqueData,
+                       std::vector<glm::vec4>& vertexTransData);
 };

@@ -28,6 +28,7 @@ RESOURCES += glsl.qrc
     QMAKE_CXXFLAGS += -Wall -Wextra -pedantic -Winit-self
     QMAKE_CXXFLAGS += -Wno-strict-aliasing
     QMAKE_CXXFLAGS += -fno-omit-frame-pointer
+    QMAKE_CXXFLAGS += -fms-extensions
 }
 linux-clang*|linux-g++*|macx-clang*|macx-g++* {
     message("Enabling stack protector")
