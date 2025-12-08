@@ -29,3 +29,15 @@ I did not use help for this assignment.
 ===========
 Milestone 3
 ===========
+
+11:00am saturday (12/6):
+"Simplex Noise Tutorial": https://catlikecoding.com/unity/tutorials/pseudorandom-noise/simplex-noise/
+"Working with Simplex Noise": https://cmaher.github.io/posts/working-with-simplex-noise/
+"OpenSimplex2S": https://gist.github.com/KdotJPG/b1270127455a94ac5d19#file-opensimplex2s-java
+
+As part of my submission, I adapted the above OpenSimplex2S algorithm for efficient simplex noise generation. I've
+left comments/citations in my code for this resource, please see ed #134 for more details.
+
+
+
+
