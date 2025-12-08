@@ -16,7 +16,7 @@
 enum BlockType : unsigned char
 {
     EMPTY, GRASS, DIRT, STONE, WATER, SNOW, SAND, LAVA, BEDROCK, SNOWY_GRASS,
-    PURPLE, LAPIS, RED
+    PURPLE, LAPIS, RED, OAK_LOG, OAK_LEAVES, BIRCH_LOG, BIRCH_LEAVES, CACTUS
 };
 
 // The six cardinal directions in 3D space
@@ -47,6 +47,7 @@ class Chunk : public Drawable {
 private:
     // All of the blocks contained within this Chunk
     std::array<BlockType, 65536> m_blocks;
+    std::array<float, 256> m_biomeTemperature;
 
     // This Chunk's four neighbors to the north, south, east, and west
     // The third input to this map just lets us use a Direction as
@@ -68,6 +69,8 @@ public:
     BlockType getLocalBlockAt(unsigned int x, unsigned int y, unsigned int z) const;
     BlockType getLocalBlockAt(int x, int y, int z) const;
     void setLocalBlockAt(unsigned int x, unsigned int y, unsigned int z, BlockType t);
+    void setBiomeTemperature(unsigned int x, unsigned int z, float temperature);
+    float getBiomeTemperature(unsigned int x, unsigned int z) const;
     void linkNeighbor(uPtr<Chunk>& neighbor, Direction dir);
     
     // Create VBO data

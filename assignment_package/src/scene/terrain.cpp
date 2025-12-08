@@ -307,8 +307,9 @@ void Terrain::addChunkInternal(int posX, int posZ) {
             int worldX = posX + i;
             int worldZ = posZ + k;
 
-            // Get height
+            // Get height and biome
             int maxHeight = m_world.getHeight(worldX, worldZ);
+            World::Biome biome = m_world.getBiome(worldX, worldZ);
 
             // Fill blocks
             for (int currHeight = 0; currHeight < 256; ++currHeight) {
@@ -321,7 +322,7 @@ void Terrain::addChunkInternal(int posX, int posZ) {
 
                 // Normal terrain
                 else {
-                    blockType = m_world.getBlockType(currHeight, maxHeight);
+                    blockType = m_world.getBlockType(currHeight, maxHeight, biome);
                 }
 
                 // Set block
@@ -584,8 +585,9 @@ void Terrain::loadChunks(glm::vec3 pos, bool initial) {
                     int worldX = currX + i;
                     int worldZ = currZ + k;
 
-                    // Get height
+                    // Get height and biome
                     int maxHeight = m_world.getHeight(worldX, worldZ);
+                    World::Biome biome = m_world.getBiome(worldX, worldZ);
 
                     // Fill blocks
                     for (int currHeight = 0; currHeight < 256; ++currHeight) {
@@ -598,7 +600,7 @@ void Terrain::loadChunks(glm::vec3 pos, bool initial) {
 
                         // Normal terrain
                         else {
-                            blockType = m_world.getBlockType(currHeight, maxHeight);
+                            blockType = m_world.getBlockType(currHeight, maxHeight, biome);
                         }
 
                         // Set block
@@ -636,8 +638,9 @@ void Terrain::CreateTestScene()
             int worldX = x;
             int worldZ = z;
 
-            // Get height
+            // Get height and biome
             int maxHeight = m_world.getHeight(worldX, worldZ);
+            World::Biome biome = m_world.getBiome(worldX, worldZ);
 
             // Fill blocks
             for (int currHeight = 0; currHeight < 256; ++currHeight) {
@@ -650,7 +653,7 @@ void Terrain::CreateTestScene()
 
                 // Normal terrain
                 else {
-                    blockType = m_world.getBlockType(currHeight, maxHeight);
+                    blockType = m_world.getBlockType(currHeight, maxHeight, biome);
                 }
 
                 // Set block
