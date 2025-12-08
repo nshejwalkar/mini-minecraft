@@ -63,8 +63,6 @@ void MainWindow::on_actionLoad_Greyscale_Heightmap_triggered() {
     LOG("applying greyscale heightmap");
     QProgressDialog progress("Applying greyscale heightmap...", "Cancel",
                              0, img.height(), this);
-    progress.setWindowModality(Qt::ApplicationModal);
-    progress.setMinimumDuration(0);
     progress.show();
 
     ui->mygl->applyHeightmap(img, false, &progress);
@@ -84,8 +82,6 @@ void MainWindow::on_actionLoad_Colored_Heightmap_triggered() {
     LOG("applying colored heightmap");
     QProgressDialog progress("Applying colored heightmap...", "Cancel",
                              0, img.height(), this);
-    progress.setWindowModality(Qt::ApplicationModal);
-    progress.setMinimumDuration(0);
     progress.show();
 
     ui->mygl->applyHeightmap(img, true, &progress);
