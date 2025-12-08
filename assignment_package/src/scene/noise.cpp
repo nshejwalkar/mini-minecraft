@@ -154,10 +154,20 @@ float Noise::worleyNoise(float x, float y, float scale, glm::vec2* outFeaturePoi
 
 //========================================================
 // Simplex Noise Implementation
+//
+// The following is a C++ adaptation of the OpenSimplex2S
+// algorithm by KdotJPG:
 // https://gist.github.com/KdotJPG/b1270127455a94ac5d19
 //========================================================
 
-// Initialize 3D gradient table
+// Initialize 3D gradient table:
+// This function sets up a large pre-computed table of carefully
+// chosen gradient vectors for OpenSimplex2S. Unlike typical simplex
+// noise (which uses 12 gradients), this implementation uses 48
+// specialized gradients to reduce grid artifacts and improve
+// isotropy (uniformity in all directions). Pre-computing these
+// normalized gradients also improves runtime efficiency by avoiding
+// repeated normalization calculations during noise generation.
 void Noise::initGradients3D() {
     const float NORMALIZER_3D = 0.2781926117527186f;
     
@@ -226,25 +236,47 @@ void Noise::initGradients3D() {
     }
 }
 
-// Fast floor function
+// Fast floor function:
+// This implements a faster alternative to std::floor() for negative
+// numbers, which is critical for noise generation performance.
+// Standard floor() can be slow due to rounding mode handling, whereas
+// this bitwise approach correctly handles negative values with minimal
+// overhead. In practice, we notice that this function significantly
+// speeds up noise calculations that involve frequent flooring of
+// floating-point coordinates.
 int Noise::fastFloor(float x) const {
     int xi = static_cast<int>(x);
     return x < xi ? xi - 1 : xi;
 }
 
-// 3D gradient function
+// 3D gradient function:
+// This function computes the dot product between a random gradient vector
+// and the distance vector. It uses the seed and lattice point coordinates
+//to generate a hash value that maps to one of the 48 pre-computed gradients.
+// The result represents the contribution of this lattice point to the final
+// noise value at the sample position.
 float Noise::grad3(int64_t seed, int64_t xrvp, int64_t yrvp, int64_t zrvp, float dx, float dy, float dz) const {
+    // Create a unique hash for this point
     int64_t hash = (seed ^ xrvp) ^ (yrvp ^ zrvp);
     hash = static_cast<int64_t>(static_cast<uint64_t>(hash) * static_cast<uint64_t>(HASH_MULTIPLIER));
     hash ^= hash >> (64 - 8 + 2);
+    
+    // Extract gradient index
     int gi = static_cast<int>(hash & ((N_GRADS_3D - 1) << 2));
     
+    // Return the dot product, multiply gradient components by distance vector and sum
     return GRADIENTS_3D[gi | 0] * dx + GRADIENTS_3D[gi | 1] * dy + GRADIENTS_3D[gi | 2] * dz;
 }
 
-// 3D OpenSimplex2S noise
+// 3D OpenSimplex2S noise:
+// This is the main function being used for generating 3D simplex noise at a
+// given coordinate (x, y, z). This function first re-orients the cubic lattice by
+// applying a rotation transformation to the input coordinates, which helps eliminate
+// directional artifacts. The purpose of this rotation is to ensure that the noise
+// appears uniform from all viewing angles, rather than showing obvious grid alignment
+// along the axes.
 float Noise::simplexNoise3D(float x, float y, float z) const {
-    // Re-orient the cubic lattices without skewing
+    // Re-orient the cubic lattices without skewing to reduce directional bias
     float xy = x + y;
     float s2 = xy * ROTATE3_ORTHOGONALIZER;
     float zz = z * ROOT3OVER3;
@@ -255,9 +287,18 @@ float Noise::simplexNoise3D(float x, float y, float z) const {
     return simplexNoise3DBase(xr, yr, zr);
 }
 
-// Base 3D simplex noise implementation
+// Base 3D simplex noise implementation:
+// This is the core algorithm that computes simplex noise. To do so,
+// it identifies which vertices are within range, computes radial falloff functions,
+// and accumulates weighted gradient contributions. Compared to perlin noise,
+// simplex noise has fewer directional artifacts and smoother interpolation, making it
+// ideal for 3D cave generation where natural-looking structures are much more preferred.
+// In practice, we noticed that perlin noise often produced visible artifacts and 
+// was less efficient in 3D scenarios.
 float Noise::simplexNoise3DBase(float xr, float yr, float zr) const {
-    // Get base points and offsets
+    // Get base points and offsets:
+    // The algorithm starts by finding the integer lattice cell containing
+    // our sample point and computes fractional offsets within that cell.
     int xrb = fastFloor(xr);
     int yrb = fastFloor(yr);
     int zrb = fastFloor(zr);
@@ -265,18 +306,27 @@ float Noise::simplexNoise3DBase(float xr, float yr, float zr) const {
     float yi = yr - yrb;
     float zi = zr - zrb;
     
-    // Prime pre-multiplication for hash
+    // Prime pre-multiplication for hash:
+    // Next, we multiply cell coordinates by large primes to spread out hash
+    // values and reduce collisions when combining coordinates.
     int64_t xrbp = static_cast<int64_t>(xrb) * PRIME_X;
     int64_t yrbp = static_cast<int64_t>(yrb) * PRIME_Y;
     int64_t zrbp = static_cast<int64_t>(zrb) * PRIME_Z;
+    
+    // Altered seed for second vertex
     int64_t seed2 = seed ^ static_cast<int64_t>(0xAD2A8B2D6942D635ULL);
     
-    // Masks
+    // Masks:
+    // Then, the following three masks determine which side of the 0.5 division
+    // our point falls on in each dimension, which is then used for vertex
+    // selection
     int xNMask = static_cast<int>(-0.5f - xi);
     int yNMask = static_cast<int>(-0.5f - yi);
     int zNMask = static_cast<int>(-0.5f - zi);
     
-    // First vertex
+    // First vertex:
+    // We compute distance to the nearest required vertex and its falloff value.
+    // The falloff ensures smooth derivatives and continuity at vertex boundaries.
     float x0 = xi + xNMask;
     float y0 = yi + yNMask;
     float z0 = zi + zNMask;
@@ -288,7 +338,9 @@ float Noise::simplexNoise3DBase(float xr, float yr, float zr) const {
                        zrbp + (zNMask & PRIME_Z),
                        x0, y0, z0);
     
-    // Second vertex
+    // Second vertex:
+    // This vertex exists at the center of the simplex structure, it's
+    // used for continuity and smoothness in the noise function.
     float x1 = xi - 0.5f;
     float y1 = yi - 0.5f;
     float z1 = zi - 0.5f;
@@ -300,7 +352,11 @@ float Noise::simplexNoise3DBase(float xr, float yr, float zr) const {
                   zrbp + PRIME_Z,
                   x1, y1, z1);
     
-    // Shortcuts for building remaining falloffs
+    // Pre-compute flip masks:
+    // Pre-computing the bit manipulation results is used to efficiently
+    // and calculate distances to optional vertices. The "flip masks"
+    // implemented here help determine which additional vertices might
+    // contribute based on the sample point's position.
     float xAFlipMask0 = ((xNMask | 1) << 1) * x1;
     float yAFlipMask0 = ((yNMask | 1) << 1) * y1;
     float zAFlipMask0 = ((zNMask | 1) << 1) * z1;
@@ -308,7 +364,15 @@ float Noise::simplexNoise3DBase(float xr, float yr, float zr) const {
     float yAFlipMask1 = (-2 - (yNMask << 2)) * y1 - 1.0f;
     float zAFlipMask1 = (-2 - (zNMask << 2)) * z1 - 1.0f;
     
+    // Optional vertices:
+    // The following blocks test up to 11 additional vertices for
+    // potential contributions. Each vertex is evaluated if its falloff
+    // is positive (for efficiency). If so, its gradient contribution
+    // is calculated and added to the total value.
+    
     bool skip5 = false;
+
+    // Vertex 2: Displaced in X direction from first vertex
     float a2 = xAFlipMask0 + a0;
     if (a2 > 0) {
         float x2 = x0 - (xNMask | 1);
@@ -320,7 +384,9 @@ float Noise::simplexNoise3DBase(float xr, float yr, float zr) const {
                       yrbp + (yNMask & PRIME_Y),
                       zrbp + (zNMask & PRIME_Z),
                       x2, y2, z2);
-    } else {
+    }
+    else {
+        // Vertex 3: Displaced in Y and Z directions (only tested if vertex 2 doesn't contribute)
         float a3 = yAFlipMask0 + zAFlipMask0 + a0;
         if (a3 > 0) {
             float x3 = x0;
@@ -334,6 +400,7 @@ float Noise::simplexNoise3DBase(float xr, float yr, float zr) const {
                           x3, y3, z3);
         }
         
+        // Vertex 4: Displaced in X direction from second vertex
         float a4 = xAFlipMask1 + a1;
         if (a4 > 0) {
             float x4 = (xNMask | 1) + x1;
@@ -345,11 +412,13 @@ float Noise::simplexNoise3DBase(float xr, float yr, float zr) const {
                           yrbp + PRIME_Y,
                           zrbp + PRIME_Z,
                           x4, y4, z4);
-            skip5 = true;
+            skip5 = true; // Skip vertex 5 if vertex 4 contributes
         }
     }
     
     bool skip9 = false;
+
+    // Vertex 6: Displaced in Y direction from first vertex
     float a6 = yAFlipMask0 + a0;
     if (a6 > 0) {
         float x6 = x0;
@@ -361,7 +430,9 @@ float Noise::simplexNoise3DBase(float xr, float yr, float zr) const {
                       yrbp + (~yNMask & PRIME_Y),
                       zrbp + (zNMask & PRIME_Z),
                       x6, y6, z6);
-    } else {
+    }
+    else {
+        // Vertex 7: Displaced in X and Z directions (only tested if vertex 6 doesn't contribute)
         float a7 = xAFlipMask0 + zAFlipMask0 + a0;
         if (a7 > 0) {
             float x7 = x0 - (xNMask | 1);
@@ -375,6 +446,7 @@ float Noise::simplexNoise3DBase(float xr, float yr, float zr) const {
                           x7, y7, z7);
         }
         
+        // Vertex 8: Displaced in Y direction from second vertex
         float a8 = yAFlipMask1 + a1;
         if (a8 > 0) {
             float x8 = x1;
@@ -386,11 +458,13 @@ float Noise::simplexNoise3DBase(float xr, float yr, float zr) const {
                           yrbp + (yNMask & (PRIME_Y << 1)),
                           zrbp + PRIME_Z,
                           x8, y8, z8);
-            skip9 = true;
+            skip9 = true; // Skip vertex 9 if vertex 8 contributes
         }
     }
     
     bool skipD = false;
+
+    // Vertex A (10): Displaced in Z direction from first vertex
     float aA = zAFlipMask0 + a0;
     if (aA > 0) {
         float xA = x0;
@@ -402,7 +476,9 @@ float Noise::simplexNoise3DBase(float xr, float yr, float zr) const {
                       yrbp + (yNMask & PRIME_Y),
                       zrbp + (~zNMask & PRIME_Z),
                       xA, yA, zA);
-    } else {
+    }
+    else {
+        // Vertex B (11): Displaced in X and Y directions (only tested if vertex A doesn't contribute)
         float aB = xAFlipMask0 + yAFlipMask0 + a0;
         if (aB > 0) {
             float xB = x0 - (xNMask | 1);
@@ -416,6 +492,7 @@ float Noise::simplexNoise3DBase(float xr, float yr, float zr) const {
                           xB, yB, zB);
         }
         
+        // Vertex C (12): Displaced in Z direction from second vertex
         float aC = zAFlipMask1 + a1;
         if (aC > 0) {
             float xC = x1;
@@ -427,11 +504,13 @@ float Noise::simplexNoise3DBase(float xr, float yr, float zr) const {
                           yrbp + PRIME_Y,
                           zrbp + (zNMask & (PRIME_Z << 1)),
                           xC, yC, zC);
-            skipD = true;
+            skipD = true; // Skip vertex D if vertex C contributes
         }
     }
     
+    // Conditional vertices, evaluated only if prior didn't contribute
     if (!skip5) {
+        // Vertex 5: Displaced in Y and Z directions from second vertex
         float a5 = yAFlipMask1 + zAFlipMask1 + a1;
         if (a5 > 0) {
             float x5 = x1;
@@ -447,6 +526,7 @@ float Noise::simplexNoise3DBase(float xr, float yr, float zr) const {
     }
     
     if (!skip9) {
+        // Vertex 9: Displaced in X and Z directions from second vertex
         float a9 = xAFlipMask1 + zAFlipMask1 + a1;
         if (a9 > 0) {
             float x9 = (xNMask | 1) + x1;
@@ -462,6 +542,7 @@ float Noise::simplexNoise3DBase(float xr, float yr, float zr) const {
     }
     
     if (!skipD) {
+        // Vertex D (13): Displaced in X and Y directions from second vertex
         float aD = xAFlipMask1 + yAFlipMask1 + a1;
         if (aD > 0) {
             float xD = (xNMask | 1) + x1;
@@ -480,6 +561,7 @@ float Noise::simplexNoise3DBase(float xr, float yr, float zr) const {
 }
 
 // Fractal 3D Simplex Noise
+// An extension of the fractal noise algorithm to 3D simplex noise.
 float Noise::fractalSimplexNoise3D(float x, float y, float z, int octaves, float persistence, float frequency, float lacunarity) const {
     float total = 0.0f;
     float freq = frequency;
