@@ -123,11 +123,13 @@ float Noise::fractalPerlinNoise3D(float x, float y, float z, int octaves, float 
 }
 
 // Worley Noise
-float Noise::worleyNoise(float x, float y, float scale) const {
+float Noise::worleyNoise(float x, float y, float scale, glm::vec2* outFeaturePoint) const {
     glm::vec2 uv = glm::vec2(x, y) * scale;
     glm::vec2 uvInt = glm::floor(uv);
     glm::vec2 uvFract = glm::fract(uv);
     float minDist = 1.0f;
+    glm::vec2 cellId = uvInt;
+    glm::vec2 featurePoint = random2(uvInt);
     
     for(int y = -1; y <= 1; ++y) {
         for(int x = -1; x <= 1; ++x) {
@@ -135,8 +137,16 @@ float Noise::worleyNoise(float x, float y, float scale) const {
             glm::vec2 point = random2(uvInt + neighbor);
             glm::vec2 diff = neighbor + point - uvFract;
             float dist = glm::length(diff);
-            minDist = glm::min(minDist, dist);
+            if (dist < minDist) {
+                minDist = dist;
+                cellId = uvInt + neighbor;
+                featurePoint = point;
+            }
         }
+    }
+    
+    if (outFeaturePoint != nullptr) {
+        *outFeaturePoint = (cellId + featurePoint) / scale;
     }
     
     return minDist;
