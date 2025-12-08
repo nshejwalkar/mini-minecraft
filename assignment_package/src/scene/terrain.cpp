@@ -316,7 +316,7 @@ void Terrain::loadSurroundingTGZs(glm::vec3 pos, bool initial) {
             if (!m_generatedTerrain.count(zoneKey)) {
 #if USE_TERRAIN_THREADS
                 BlockTypeWorker* worker = new BlockTypeWorker(currZoneX, currZoneZ, this, &chunksMutex);
-                LOG("started blocktypeworker for zone " << currZoneX << ", " << currZoneZ);
+                // LOG("started blocktypeworker for zone " << currZoneX << ", " << currZoneZ);
                 QThreadPool::globalInstance()->start(worker);
 #else
                 {
@@ -402,7 +402,7 @@ void Terrain::loadSurroundingTGZs(glm::vec3 pos, bool initial) {
             }
         }
 
-        LOG("INITIAL: synchronizing again...");
+        // LOG("INITIAL: synchronizing again...");
         QThreadPool::globalInstance()->waitForDone();  // sync again
 
         std::vector<VBOData> localVBOs;  // local, again
@@ -411,7 +411,7 @@ void Terrain::loadSurroundingTGZs(glm::vec3 pos, bool initial) {
         VBODataList.clear();
         VBODataMutex.unlock();
 
-        LOG("INITIAL: looping thru localVBOs...");
+        // LOG("INITIAL: looping thru localVBOs...");
         // now run through the vbos (one per chunk) and buffer them. done!
         for (VBOData& vbo : localVBOs) {
             if (m_chunks.count(vbo.chunkMapKey)) {
