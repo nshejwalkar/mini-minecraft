@@ -57,6 +57,38 @@ void BlockTypeWorker::run() {
                                                    blockType);
                             // terrain->setGlobalBlockAt(worldX, currHeight, worldZ, blockType);
                         }
+                        
+                        // Place cactus blocks
+                        if (currHeight == maxHeight && maxHeight > World::WATER_HEIGHT && maxHeight <= World::STONE_HEIGHT) {
+                            if (terrain->m_world.validCactusPlacement(worldX, worldZ, biome)) {
+                                int cactusHeight = terrain->m_world.getCactusHeight(worldX, worldZ);
+                                for (int cactusY = 0; cactusY < cactusHeight; ++cactusY) {
+                                    chunk->setLocalBlockAt(static_cast<unsigned int>(i), static_cast<unsigned int>(currHeight + cactusY), static_cast<unsigned int>(k), BlockType::CACTUS);
+                                }
+                            }
+                        }
+                        
+                        // Place oak trees
+                        if (currHeight == maxHeight && maxHeight > World::SAND_HEIGHT && maxHeight < World::STONE_HEIGHT) {
+                            // Ensure chunk bounds
+                            if (i >= 2 && i <= 13 && k >= 2 && k <= 13) {
+                                if (terrain->m_world.validOakTreePlacement(worldX, worldZ, biome)) {
+                                    int treeHeight = terrain->m_world.getTreeHeight(worldX, worldZ, 3000);
+                                    terrain->m_world.placeTree(chunk, i, currHeight, k, treeHeight, worldX, worldZ, BlockType::OAK_LOG, BlockType::OAK_LEAVES);
+                                }
+                            }
+                        }
+                        
+                        // Place birch trees
+                        if (currHeight == maxHeight && maxHeight > World::SAND_HEIGHT && maxHeight < World::STONE_HEIGHT) {
+                            // Ensure chunk bounds
+                            if (i >= 2 && i <= 13 && k >= 2 && k <= 13) {
+                                if (terrain->m_world.validBirchTreePlacement(worldX, worldZ, biome)) {
+                                    int treeHeight = terrain->m_world.getTreeHeight(worldX, worldZ, 4000);
+                                    terrain->m_world.placeTree(chunk, i, currHeight, k, treeHeight, worldX, worldZ, BlockType::BIRCH_LOG, BlockType::BIRCH_LEAVES);
+                                }
+                            }
+                        }
                     }
                 }
             }
