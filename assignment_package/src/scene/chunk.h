@@ -16,7 +16,7 @@
 enum BlockType : unsigned char
 {
     EMPTY, GRASS, DIRT, STONE, WATER, SNOW, SAND, LAVA, BEDROCK, SNOWY_GRASS,
-    OAK_LOG, OAK_LEAVES, BIRCH_LOG, BIRCH_LEAVES, CACTUS
+    PURPLE, LAPIS, RED, OAK_LOG, OAK_LEAVES, BIRCH_LOG, BIRCH_LEAVES, CACTUS
 };
 
 // The six cardinal directions in 3D space

@@ -356,6 +356,8 @@ glm::vec4 Chunk::getColor(BlockType blockType) const {
             return glm::vec4(glm::vec3(0.1f, 0.1f, 0.1f), 1.f);
         case SNOWY_GRASS:
             return glm::vec4(glm::vec3(1.f), 1.f);
+        case PURPLE:
+            return glm::vec4(glm::vec3(0.5f), 1.f);
         case OAK_LOG:
             return glm::vec4(glm::vec3(102.f, 76.f, 51.f) / 255.f, 1.f);
         case OAK_LEAVES:
@@ -407,6 +409,12 @@ glm::vec4 Chunk::getBottomLeftUV(BlockType blockType, bool top) const {
             }
         case SAND:
             return glm::vec4(glm::vec2(1.f, 32.f - 26.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+        case PURPLE:
+            return glm::vec4(glm::vec2(22.f, 32.f - 23.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+        case LAPIS: // or 12,16
+            return glm::vec4(glm::vec2(7.f, 32.f - 8.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+        case RED:
+            return glm::vec4(glm::vec2(26.f, 32.f - 10.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
         case OAK_LOG:
             if (top) {
                 return glm::vec4(glm::vec2(23.f, 32.f - 19.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);

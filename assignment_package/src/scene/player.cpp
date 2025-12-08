@@ -14,7 +14,28 @@ Player::Player(glm::vec3 pos, const Terrain &terrain)
       flight_mode(true),
       noclip_mode(false),
       mcr_camera(m_camera)
-{}
+{
+    m_walkSound.setSource(QUrl("qrc:/sounds/sounds/walking.wav"));
+    m_walkSound.setLoopCount(QSoundEffect::Infinite);
+    m_walkSound.setVolume(WALK_VOLUME);
+
+    m_waterWalkSound.setSource(QUrl("qrc:/sounds/sounds/standing_in_water.wav"));
+    m_waterWalkSound.setLoopCount(QSoundEffect::Infinite);
+    m_waterWalkSound.setVolume(WATER_WALK_VOLUME);
+
+    m_underwaterSound.setSource(QUrl("qrc:/sounds/sounds/underwater.wav"));
+    m_underwaterSound.setLoopCount(QSoundEffect::Infinite);
+    m_underwaterSound.setVolume(UNDERWATER_VOLUME);
+
+    m_lavaSound.setSource(QUrl("qrc:/sounds/sounds/in_lava.wav"));
+    m_lavaSound.setLoopCount(QSoundEffect::Infinite);
+    m_lavaSound.setVolume(LAVA_VOLUME);
+
+//     qDebug() << "lava source =" << m_lavaSound.source();
+// qDebug() << "status after setSource =" << m_lavaSound.status();
+//     m_lavaSound.play();
+// qDebug() << "status after play =" << m_lavaSound.status();
+}
 
 Player::~Player()
 {}
@@ -61,6 +82,59 @@ bool Player::processClick(QMouseEvent* e, glm::ivec3* out_hit, glm::ivec3* out_p
 void Player::tick(float dT, InputBundle &input) {
     processInputs(input);
     computePhysics(dT, mcr_terrain);
+    processSoundEffects();
+}
+
+void Player::processSoundEffects() {
+    bool currently_walking = (std::abs(m_velocity.x) > 0.01f ||
+                              std::abs(m_velocity.z) > 0.01f) && m_touchingGround && !flight_mode;
+    bool currently_inLava = mcr_terrain.getGlobalBlockAt(m_position) == LAVA;
+    bool positionInWater = mcr_terrain.getGlobalBlockAt(m_position) == WATER;
+    bool cameraInWater = mcr_terrain.getGlobalBlockAt(m_camera.mcr_position) == WATER;
+
+    // separate out the logic for being "half" underwater vs fully submerged
+    bool wantStandingInWater = positionInWater && !cameraInWater;
+    bool wantUnderwater = cameraInWater;
+
+    // walking
+    if (!playerWasWalking && currently_walking) {
+        playerWasWalking = true;
+        m_walkSound.play();
+    }
+    else if (playerWasWalking && !currently_walking) {
+        playerWasWalking = false;
+        m_walkSound.stop();
+    }
+
+    // in water
+    if (!playerWasInWater && wantStandingInWater) {
+        playerWasInWater = true;
+        m_waterWalkSound.play();
+    }
+    else if (playerWasInWater && !wantStandingInWater) {
+        playerWasInWater = false;
+        m_waterWalkSound.stop();
+    }
+
+    // under water
+    if (!playerWasUnderwater && wantUnderwater) {
+        playerWasUnderwater = true;
+        m_underwaterSound.play();
+    }
+    else if (playerWasUnderwater && !wantUnderwater) {
+        playerWasUnderwater = false;
+        m_underwaterSound.stop();
+    }
+
+    // in lava
+    if (!playerWasInLava && currently_inLava) {
+        playerWasInLava = true;
+        m_lavaSound.play();
+    }
+    else if (playerWasInLava && !currently_inLava) {
+        playerWasInLava = false;
+        m_lavaSound.stop();
+    }
 }
 
 void Player::processInputs(InputBundle &inputs) {
@@ -248,15 +322,15 @@ glm::vec3 Player::calculateCollision() {
             smallestCollision.x = glm::min(out_dist_x, smallestCollision.x);
         }
 
-        float out_dist_x_down;
-        glm::ivec3 out_hit_x_down;
-        if (m_velocity.x != 0 && this->gridMarch(vertex+glm::vec3(0,-1,0), glm::vec3(m_velocity.x,0,0), mcr_terrain, &out_dist_x_down, &out_hit_x_down)) {
-            if (logDebug) {
-                std::cout << "  X-down collision at dist=" << out_dist_x_down
-                          << ", block=" << out_hit_x_down.x << "," << out_hit_x_down.y << "," << out_hit_x_down.z << std::endl;
-            }
-            smallestCollision.x = glm::min(out_dist_x_down, smallestCollision.x);
-        }
+        // float out_dist_x_down;
+        // glm::ivec3 out_hit_x_down;
+        // if (m_velocity.x != 0 && this->gridMarch(vertex+glm::vec3(0,-1,0), glm::vec3(m_velocity.x,0,0), mcr_terrain, &out_dist_x_down, &out_hit_x_down)) {
+        //     if (logDebug) {
+        //         std::cout << "  X-down collision at dist=" << out_dist_x_down
+        //                   << ", block=" << out_hit_x_down.x << "," << out_hit_x_down.y << "," << out_hit_x_down.z << std::endl;
+        //     }
+        //     smallestCollision.x = glm::min(out_dist_x_down, smallestCollision.x);
+        // }
 
         float out_dist_y;
         glm::ivec3 out_hit_y;
@@ -278,15 +352,15 @@ glm::vec3 Player::calculateCollision() {
             smallestCollision.z = glm::min(out_dist_z, smallestCollision.z);
         }
 
-        float out_dist_z_down;
-        glm::ivec3 out_hit_z_down;
-        if (m_velocity.z != 0 && this->gridMarch(vertex+glm::vec3(0,-1,0), glm::vec3(0,0,m_velocity.z), mcr_terrain, &out_dist_z_down, &out_hit_z_down)) {
-            if (logDebug) {
-                std::cout << "  X-down collision at dist=" << out_dist_z_down
-                          << ", block=" << out_hit_z_down.x << "," << out_hit_z_down.y << "," << out_hit_z_down.z << std::endl;
-            }
-            smallestCollision.z = glm::min(out_dist_z_down, smallestCollision.z);
-        }
+        // float out_dist_z_down;
+        // glm::ivec3 out_hit_z_down;
+        // if (m_velocity.z != 0 && this->gridMarch(vertex+glm::vec3(0,-1,0), glm::vec3(0,0,m_velocity.z), mcr_terrain, &out_dist_z_down, &out_hit_z_down)) {
+        //     if (logDebug) {
+        //         std::cout << "  X-down collision at dist=" << out_dist_z_down
+        //                   << ", block=" << out_hit_z_down.x << "," << out_hit_z_down.y << "," << out_hit_z_down.z << std::endl;
+        //     }
+        //     smallestCollision.z = glm::min(out_dist_z_down, smallestCollision.z);
+        // }
     }
 
     if (logDebug) {

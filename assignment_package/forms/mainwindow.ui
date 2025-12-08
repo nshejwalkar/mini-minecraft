@@ -26,7 +26,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>21</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -34,6 +34,8 @@
      <string>File</string>
     </property>
     <addaction name="actionQuit"/>
+    <addaction name="actionLoad_Greyscale_Heightmap"/>
+    <addaction name="actionLoad_Colored_Heightmap"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -55,6 +57,16 @@
   <action name="actionCamera_Controls">
    <property name="text">
     <string>Camera Controls</string>
+   </property>
+  </action>
+  <action name="actionLoad_Greyscale_Heightmap">
+   <property name="text">
+    <string>Load Greyscale Heightmap</string>
+   </property>
+  </action>
+  <action name="actionLoad_Colored_Heightmap">
+   <property name="text">
+    <string>Load Colored Heightmap</string>
    </property>
   </action>
  </widget>

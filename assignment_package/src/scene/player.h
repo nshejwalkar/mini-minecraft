@@ -2,8 +2,10 @@
 #include "entity.h"
 #include "camera.h"
 #include "terrain.h"
+#include <QSoundEffect>
 
 class Player : public Entity {
+    friend class MyGL;
 private:
     glm::vec3 m_velocity, m_acceleration;
     Camera m_camera;
@@ -22,6 +24,18 @@ private:
     bool m_teleporting = false;
     bool playerInLiquid = false;
     bool m_spacePressed = false;
+
+    // sound effects
+    bool playerWasWalking = false;
+    QSoundEffect m_walkSound;
+    bool playerWasInWater = false;
+    QSoundEffect m_waterWalkSound;
+    bool playerWasUnderwater = false;
+    QSoundEffect m_underwaterSound;
+    bool playerWasInLava = false;
+    QSoundEffect m_lavaSound;
+
+    void processSoundEffects();
 
 public:
     bool flight_mode;  // changed from myGL

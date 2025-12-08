@@ -2,6 +2,7 @@
 #define MYGL_H
 
 #include "openglcontext.h"
+#include "qmediaplayer.h"
 #include "scene/crosshair.h"
 #include "scene/playerbounds.h"
 #include "shaderprogram.h"
@@ -58,6 +59,9 @@ private:
     bool m_thirdPersonDebug = false;
     PlayerBounds m_playerbounds;
 
+    QMediaPlayer* m_bgmPlayer;
+    QAudioOutput* m_bgmOutput;
+
     void resetPlayer();
 
     void moveMouseToCenter(); // Forces the mouse position to the screen's center. You should call this
@@ -85,6 +89,9 @@ public:
     // Called from paintGL().
     // Calls Terrain::draw().
     void renderTerrain();
+
+    // called from mainwindow.cpp
+    void applyHeightmap(const QImage& img, bool colored);
 
 protected:
     // Automatically invoked when the user

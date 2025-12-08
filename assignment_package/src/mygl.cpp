@@ -8,7 +8,10 @@
 #include <QApplication>
 #include <QKeyEvent>
 #include <QDateTime>
+#include <QMediaPlayer>
+#include <QAudioOutput>
 
+#include <unordered_set>
 #include <chrono>
 
 MyGL::MyGL(QWidget *parent)
@@ -73,6 +76,16 @@ void MyGL::initializeGL()
 
     // Create a Vertex Attribute Object
     glGenVertexArrays(1, &vao);
+
+    m_bgmOutput = new QAudioOutput(this);
+    m_bgmOutput->setVolume(BGM_VOLUME);
+    m_bgmPlayer = new QMediaPlayer(this);
+    m_bgmPlayer->setAudioOutput(m_bgmOutput);
+    m_bgmPlayer->setSource(QUrl("qrc:/bgms/bgms/regular_bgm.mp3"));
+    m_bgmPlayer->setLoops(QMediaPlayer::Infinite);
+    m_bgmPlayer->play();
+    // qDebug() << "BGM source =" << m_bgmPlayer->source();
+    // qDebug() << "BGM error =" << m_bgmPlayer->errorString();
 
     //Create the instance of the world axes
     m_worldAxes.createVBOdata();
@@ -200,8 +213,11 @@ void MyGL::paintGL() {
 
     // Render postprocess framebuffer
     postProcessFrameBuffer.bindFrameBuffer();
+#ifdef Q_OS_WIN
+    glViewport(0, 0, width(), height());
+#else
     glViewport(0, 0, width() * devicePixelRatio(), height() * devicePixelRatio());
-    // glViewport(0, 0, width(), height());
+#endif
 
     // Clear the screen so that we only see newly drawn images
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -292,6 +308,59 @@ void MyGL::renderTerrain() {
     int maxZ = (zoneZ + RENDER_RADIUS + 1) * 64;
 
     m_terrain.draw(minX, maxX, minZ, maxZ, &m_progLambert);
+}
+
+void MyGL::applyHeightmap(const QImage& img, bool colored) {
+    int width = img.width();
+    int height = img.height();
+
+    glm::vec3 playerPos = m_player.mcr_position;
+
+    int startX = int(std::floor(playerPos.x)) - width / 2;
+    int startZ = int(std::floor(playerPos.z)) - height / 2;
+
+    // need to track which chunk vbos to refill and rerender
+    std::unordered_set<Chunk*> affectedChunks;
+
+    for (int z = 0; z < height; z++) {
+        for (int x = 0; x < width; x++) {
+            // LOG("pixel: " << x << ", " << z);
+            const int worldX = startX + x;
+            const int worldZ = startZ + z;
+
+            // we can just truncate the image
+            if (!m_terrain.hasChunkAt(worldX, worldZ)) {
+                continue;
+            }
+
+            QColor col = img.pixelColor(x, z);
+            int columnHeight = qGray(col.rgb());  // the gray
+            // gray = std::clamp(gray, 0, 255);
+
+            uPtr<Chunk>& cUPtr = m_terrain.getChunkAt(worldX, worldZ);
+            affectedChunks.insert(cUPtr.get());
+
+            BlockType candidate;
+            if (!colored) {
+                candidate = STONE;
+            } else {
+                candidate = m_terrain.blocktypeFromColor(col);
+            }
+
+            for (int y = 0; y < 256; ++y) {
+                BlockType bt = (y <= columnHeight) ? candidate : EMPTY;
+                m_terrain.setGlobalBlockAt(worldX, y, worldZ, bt);
+            }
+        }
+    }
+
+    for (Chunk* c : affectedChunks) {
+        c->createVBOdata();
+    }
+
+    // teleport player to the top of the spawned image
+    m_player.moveAlongVector(glm::vec3(playerPos.x, 256, playerPos.z) - playerPos);
+    // renderTerrain();
 }
 
 void MyGL::lockMouse() {
