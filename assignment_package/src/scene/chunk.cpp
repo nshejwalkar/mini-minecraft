@@ -1,9 +1,10 @@
 #include "chunk.h"
 
 
-Chunk::Chunk(OpenGLContext* context, int x, int z) : Drawable(context), m_blocks(), minX(x), minZ(z), m_neighbors{{XPOS, nullptr}, {XNEG, nullptr}, {ZPOS, nullptr}, {ZNEG, nullptr}}
+Chunk::Chunk(OpenGLContext* context, int x, int z) : Drawable(context), m_blocks(), m_biomeTemperature(), minX(x), minZ(z), m_neighbors{{XPOS, nullptr}, {XNEG, nullptr}, {ZPOS, nullptr}, {ZNEG, nullptr}}
 {
     std::fill_n(m_blocks.begin(), 65536, EMPTY);
+    std::fill_n(m_biomeTemperature.begin(), 256, 0.0f);
 }
 
 // Does bounds checking with at()
@@ -19,6 +20,16 @@ BlockType Chunk::getLocalBlockAt(int x, int y, int z) const {
 // Does bounds checking with at()
 void Chunk::setLocalBlockAt(unsigned int x, unsigned int y, unsigned int z, BlockType t) {
     m_blocks.at(x + 16 * y + 16 * 256 * z) = t;
+}
+
+// Set biome temperature
+void Chunk::setBiomeTemperature(unsigned int x, unsigned int z, float temperature) {
+    m_biomeTemperature.at(x + 16 * z) = temperature;
+}
+
+// Get biome temperature
+float Chunk::getBiomeTemperature(unsigned int x, unsigned int z) const {
+    return m_biomeTemperature.at(x + 16 * z);
 }
 
 
@@ -111,6 +122,10 @@ void Chunk::populateAllData(std::vector<GLuint>& idxOpaqueData,
                 glm::vec4 topuv_tr = glm::vec4(1.f/64.f,1.f/32.f,0,0) + topuv_bl;
 
                 glm::vec4 pos(x, y, z, 0);
+                
+                // Get biome temperature
+                float biomeTemp = getBiomeTemperature(x, z);
+                glm::vec4 biomeData(biomeTemp, 0, 0, 0);
 
                 vertexData = isTransparent(currBlock) ? &vertexTransData : &vertexOpaqueData;
                 numFaces = isTransparent(currBlock) ? &numTransFaces : &numOpaqueFaces;
@@ -122,18 +137,22 @@ void Chunk::populateAllData(std::vector<GLuint>& idxOpaqueData,
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_bl);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(1, 0, 1, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_br);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(1, 1, 1, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_tr);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(1, 1, 0, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_tl);
+                    vertexData->push_back(biomeData);
                     (*numFaces)++;
                 }
 
@@ -143,18 +162,22 @@ void Chunk::populateAllData(std::vector<GLuint>& idxOpaqueData,
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_bl);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(0, 0, 0, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_br);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(0, 1, 0, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_tr);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(0, 1, 1, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_tl);
+                    vertexData->push_back(biomeData);
                     (*numFaces)++;
                 }
 
@@ -164,18 +187,22 @@ void Chunk::populateAllData(std::vector<GLuint>& idxOpaqueData,
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(topuv_bl);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(1, 1, 0, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(topuv_br);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(1, 1, 1, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(topuv_tr);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(0, 1, 1, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(topuv_tl);
+                    vertexData->push_back(biomeData);
                     (*numFaces)++;
                 }
 
@@ -185,18 +212,22 @@ void Chunk::populateAllData(std::vector<GLuint>& idxOpaqueData,
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_bl);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(1, 0, 1, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_br);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(1, 0, 0, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_tr);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(0, 0, 0, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_tl);
+                    vertexData->push_back(biomeData);
                     (*numFaces)++;
                 }
 
@@ -206,18 +237,22 @@ void Chunk::populateAllData(std::vector<GLuint>& idxOpaqueData,
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_bl);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(1, 0, 1, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_br);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(1, 1, 1, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_tr);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(0, 1, 1, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_tl);
+                    vertexData->push_back(biomeData);
                     (*numFaces)++;
                 }
 
@@ -227,18 +262,22 @@ void Chunk::populateAllData(std::vector<GLuint>& idxOpaqueData,
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_bl);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(0, 0, 0, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_br);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(0, 1, 0, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_tr);
+                    vertexData->push_back(biomeData);
                     vertexData->push_back(glm::vec4(1, 1, 0, 1) + pos);
                     vertexData->push_back(normal);
                     vertexData->push_back(color);
                     vertexData->push_back(sideuv_tl);
+                    vertexData->push_back(biomeData);
                     (*numFaces)++;
                 }
             }

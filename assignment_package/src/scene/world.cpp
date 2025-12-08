@@ -47,10 +47,10 @@ World::Temp World::getTemperature(float x, float z) const {
     float noiseValue = getTemperatureNoise(x, z);
     
     // Map noise value to temperature
-    if (noiseValue < -0.15f) {
+    if (noiseValue < -0.2f) {
         return Temp::COLD;
     }
-    else if (noiseValue < 0.10f) {
+    else if (noiseValue < 0.15f) {
         return Temp::WARM;
     }
     else {

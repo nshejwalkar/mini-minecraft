@@ -67,6 +67,8 @@ public:
     BlockType getLocalBlockAt(unsigned int x, unsigned int y, unsigned int z) const;
     BlockType getLocalBlockAt(int x, int y, int z) const;
     void setLocalBlockAt(unsigned int x, unsigned int y, unsigned int z, BlockType t);
+    void setBiomeTemperature(unsigned int x, unsigned int z, float temperature);
+    float getBiomeTemperature(unsigned int x, unsigned int z) const;
     void linkNeighbor(uPtr<Chunk>& neighbor, Direction dir);
     
     // Create VBO data

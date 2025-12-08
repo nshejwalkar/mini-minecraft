@@ -269,22 +269,27 @@ void ShaderProgram::drawInterleaved(Drawable &d) {
     if (d.bindBuffer(INTERLEAVED)) {
         if (m_attribs["vs_Pos"] != -1) {
             context->glEnableVertexAttribArray(m_attribs["vs_Pos"]);
-            context->glVertexAttribPointer(m_attribs["vs_Pos"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)0);
+            context->glVertexAttribPointer(m_attribs["vs_Pos"], 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*)0);
         }
 
         if (m_attribs["vs_Nor"] != -1) {
             context->glEnableVertexAttribArray(m_attribs["vs_Nor"]);
-            context->glVertexAttribPointer(m_attribs["vs_Nor"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)(sizeof(glm::vec4)));
+            context->glVertexAttribPointer(m_attribs["vs_Nor"], 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*)(sizeof(glm::vec4)));
         }
 
         if (m_attribs["vs_Col"] != -1) {
             context->glEnableVertexAttribArray(m_attribs["vs_Col"]);
-            context->glVertexAttribPointer(m_attribs["vs_Col"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)(2*sizeof(glm::vec4)));
+            context->glVertexAttribPointer(m_attribs["vs_Col"], 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*)(2*sizeof(glm::vec4)));
         }
 
         if (m_attribs.count("vs_UV") && m_attribs["vs_UV"] != -1) {
             context->glEnableVertexAttribArray(m_attribs["vs_UV"]);
-            context->glVertexAttribPointer(m_attribs["vs_UV"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)(3*sizeof(glm::vec4)));
+            context->glVertexAttribPointer(m_attribs["vs_UV"], 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*)(3*sizeof(glm::vec4)));
+        }
+        
+        if (m_attribs.count("vs_BiomeData") && m_attribs["vs_BiomeData"] != -1) {
+            context->glEnableVertexAttribArray(m_attribs["vs_BiomeData"]);
+            context->glVertexAttribPointer(m_attribs["vs_BiomeData"], 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*)(4*sizeof(glm::vec4)));
         }
     }
 
@@ -295,6 +300,7 @@ void ShaderProgram::drawInterleaved(Drawable &d) {
     if (m_attribs["vs_Nor"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_Nor"]);
     if (m_attribs["vs_Col"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_Col"]);
     if (m_attribs["vs_UV"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_UV"]);
+    if (m_attribs["vs_BiomeData"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_BiomeData"]);
     context->printGLErrorLog();
 }
 
@@ -309,22 +315,27 @@ void ShaderProgram::drawInterleavedTransparent(Drawable &d) {
     if (d.bindBuffer(INTERLEAVED_TRANSPARENT)) {
         if (m_attribs["vs_Pos"] != -1) {
             context->glEnableVertexAttribArray(m_attribs["vs_Pos"]);
-            context->glVertexAttribPointer(m_attribs["vs_Pos"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)0);
+            context->glVertexAttribPointer(m_attribs["vs_Pos"], 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*)0);
         }
 
         if (m_attribs["vs_Nor"] != -1) {
             context->glEnableVertexAttribArray(m_attribs["vs_Nor"]);
-            context->glVertexAttribPointer(m_attribs["vs_Nor"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)(sizeof(glm::vec4)));
+            context->glVertexAttribPointer(m_attribs["vs_Nor"], 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*)(sizeof(glm::vec4)));
         }
 
         if (m_attribs["vs_Col"] != -1) {
             context->glEnableVertexAttribArray(m_attribs["vs_Col"]);
-            context->glVertexAttribPointer(m_attribs["vs_Col"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)(2*sizeof(glm::vec4)));
+            context->glVertexAttribPointer(m_attribs["vs_Col"], 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*)(2*sizeof(glm::vec4)));
         }
 
         if (m_attribs.count("vs_UV") && m_attribs["vs_UV"] != -1) {
             context->glEnableVertexAttribArray(m_attribs["vs_UV"]);
-            context->glVertexAttribPointer(m_attribs["vs_UV"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)(3*sizeof(glm::vec4)));
+            context->glVertexAttribPointer(m_attribs["vs_UV"], 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*)(3*sizeof(glm::vec4)));
+        }
+        
+        if (m_attribs.count("vs_BiomeData") && m_attribs["vs_BiomeData"] != -1) {
+            context->glEnableVertexAttribArray(m_attribs["vs_BiomeData"]);
+            context->glVertexAttribPointer(m_attribs["vs_BiomeData"], 4, GL_FLOAT, false, 5 * sizeof(glm::vec4), (void*)(4*sizeof(glm::vec4)));
         }
     }
 
@@ -335,6 +346,7 @@ void ShaderProgram::drawInterleavedTransparent(Drawable &d) {
     if (m_attribs["vs_Nor"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_Nor"]);
     if (m_attribs["vs_Col"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_Col"]);
     if (m_attribs["vs_UV"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_UV"]);
+    if (m_attribs["vs_BiomeData"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_BiomeData"]);
 
     context->printGLErrorLog();
 }
