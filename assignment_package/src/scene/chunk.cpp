@@ -50,6 +50,10 @@ void Chunk::linkNeighbor(uPtr<Chunk> &neighbor, Direction dir) {
 }
 
 inline bool isTransparent(BlockType b) {
+    return (b == WATER || b == LAVA || b == OAK_LEAVES || b == BIRCH_LEAVES);
+}
+
+inline bool isLiquid(BlockType b) {
     return (b == WATER || b == LAVA);
 }
 
@@ -131,7 +135,7 @@ void Chunk::populateAllData(std::vector<GLuint>& idxOpaqueData,
                 numFaces = isTransparent(currBlock) ? &numTransFaces : &numOpaqueFaces;
 
                 // If neighbor EMPTY, add pos/normal/color to vertex data
-                if (currBlock != WATER && currBlock != LAVA && (xPos == EMPTY || isTransparent(xPos))) {
+                if (!isLiquid(currBlock) && (xPos == EMPTY || isTransparent(xPos))) {
                     glm::vec4 normal(1, 0, 0, 0);
                     vertexData->push_back(glm::vec4(1, 0, 0, 1) + pos);
                     vertexData->push_back(normal);
@@ -156,7 +160,7 @@ void Chunk::populateAllData(std::vector<GLuint>& idxOpaqueData,
                     (*numFaces)++;
                 }
 
-                if (currBlock != WATER && currBlock != LAVA && (xNeg == EMPTY || isTransparent(xNeg))) {
+                if (!isLiquid(currBlock) && (xNeg == EMPTY || isTransparent(xNeg))) {
                     glm::vec4 normal(-1, 0, 0, 0);
                     vertexData->push_back(glm::vec4(0, 0, 1, 1) + pos);
                     vertexData->push_back(normal);
@@ -181,7 +185,7 @@ void Chunk::populateAllData(std::vector<GLuint>& idxOpaqueData,
                     (*numFaces)++;
                 }
 
-                if ((currBlock == WATER || currBlock == LAVA) ? (yPos == EMPTY) : (yPos == EMPTY || isTransparent(yPos))) {
+                if ((isLiquid(currBlock)) ? (yPos == EMPTY) : (yPos == EMPTY || isTransparent(yPos))) {
                     glm::vec4 normal(0, 1, 0, 0);
                     vertexData->push_back(glm::vec4(0, 1, 0, 1) + pos);
                     vertexData->push_back(normal);
@@ -206,7 +210,7 @@ void Chunk::populateAllData(std::vector<GLuint>& idxOpaqueData,
                     (*numFaces)++;
                 }
 
-                if (currBlock != WATER && currBlock != LAVA && (yNeg == EMPTY || isTransparent(yNeg))) {
+                if (!isLiquid(currBlock) && (yNeg == EMPTY || isTransparent(yNeg))) {
                     glm::vec4 normal(0, -1, 0, 0);
                     vertexData->push_back(glm::vec4(0, 0, 1, 1) + pos);
                     vertexData->push_back(normal);
@@ -231,7 +235,7 @@ void Chunk::populateAllData(std::vector<GLuint>& idxOpaqueData,
                     (*numFaces)++;
                 }
 
-                if (currBlock != WATER && currBlock != LAVA && (zPos == EMPTY || isTransparent(zPos))) {
+                if (!isLiquid(currBlock) && (zPos == EMPTY || isTransparent(zPos))) {
                     glm::vec4 normal(0, 0, 1, 0);
                     vertexData->push_back(glm::vec4(0, 0, 1, 1) + pos);
                     vertexData->push_back(normal);
@@ -256,7 +260,7 @@ void Chunk::populateAllData(std::vector<GLuint>& idxOpaqueData,
                     (*numFaces)++;
                 }
 
-                if (currBlock != WATER && currBlock != LAVA && (zNeg == EMPTY || isTransparent(zNeg))) {
+                if (!isLiquid(currBlock) && (zNeg == EMPTY || isTransparent(zNeg))) {
                     glm::vec4 normal(0, 0, -1, 0);
                     vertexData->push_back(glm::vec4(1, 0, 0, 1) + pos);
                     vertexData->push_back(normal);
@@ -437,10 +441,10 @@ glm::vec4 Chunk::getBottomLeftUV(BlockType blockType, bool top) const {
             return glm::vec4(glm::vec2(21.f, 32.f - 19.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 5.f);
         case CACTUS:
             if (top) {
-                return glm::vec4(glm::vec2(14.f, 32.f - 10.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+                return glm::vec4(glm::vec2(27.f, 32.f - 18.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 6.f);
             }
             else {
-                return glm::vec4(glm::vec2(13.f, 32.f - 10.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+                return glm::vec4(glm::vec2(25.f, 32.f - 18.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 6.f);
             }
         default:
             return glm::vec4(0,0,0,0);

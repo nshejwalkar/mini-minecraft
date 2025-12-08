@@ -42,6 +42,12 @@ private:
 
     static constexpr float TEMP_SCALE = 0.001f;
 
+    // Decoration constants
+    static constexpr float CACTUS_SCALE = 3.0f;
+    static constexpr float CACTUS_THRESHOLD = 0.01f;
+    static constexpr float OAK_TREE_SCALE = 0.2f;
+    static constexpr float OAK_TREE_THRESHOLD = 0.03f;
+
     //========================================================
     // Caves
     //========================================================
@@ -110,4 +116,12 @@ public:
     
     // Get temperature noise
     float getTemperatureNoise(float x, float z) const;
+
+    // Decoration functions
+    bool validCactusPlacement(int x, int z, World::Biome biome) const;
+    bool validOakTreePlacement(int x, int z, World::Biome biome) const;
+    bool validBirchTreePlacement(int x, int z, World::Biome biome) const;
+    int getCactusHeight(int x, int z) const;
+    int getTreeHeight(int x, int z, int offset) const;
+    void placeTree(Chunk* chunk, int localX, int localY, int localZ, int treeHeight, int worldX, int worldZ, BlockType logType, BlockType leavesType) const;
 };

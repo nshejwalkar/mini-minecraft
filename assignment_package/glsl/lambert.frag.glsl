@@ -159,6 +159,12 @@ void main()
             baseUV = vec2(21.0, 32.0 - 19.0 - 1.0) / vec2(64.0, 32.0);
         }
         
+        // Cactus
+        else if (fs_overlay == 6) {
+            biomeColor = vec3(86.0, 140.0, 63.0) / 255.0;
+            baseUV = vec2(25.0, 32.0 - 18.0 - 1.0) / vec2(64.0, 32.0);
+        }
+        
         // Sample grayscale texture
         vec4 grayscaleColor = texture(u_Texture, baseUV + tileOffset / vec2(64.0, 32.0));
         
@@ -186,6 +192,11 @@ void main()
     float fogInterp = clamp((zdepth - fogNear) / (fogFar - fogNear), 0.0, 1.0);
     vec3 fogColor = vec3(0.75, 0.78, 0.80);
     vec3 finalRgb = mix(lambert_col.rgb, fogColor, fogInterp);
+
+    // See through transparent blocks
+    if (lambert_col.a < 0.5) {
+        discard;
+    }
 
     out_Col = vec4(finalRgb, lambert_col.a);
     // out_Col = vec4(vec3(zdepth / 100.0), 1.0);

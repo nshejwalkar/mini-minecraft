@@ -9,7 +9,7 @@ Player::Player(glm::vec3 pos, const Terrain &terrain)
     : Entity(pos),
       m_velocity(0,0,0),
       m_acceleration(0,0,0),
-      m_camera(pos + glm::vec3(0, 1.5f, 0)),
+      m_camera(pos + glm::vec3(0, 2.5f, 0)),
       mcr_terrain(terrain),
       flight_mode(true),
       noclip_mode(false),
