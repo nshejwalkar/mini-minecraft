@@ -419,6 +419,16 @@ glm::vec4 Chunk::getBottomLeftUV(BlockType blockType, bool top) const {
             return glm::vec4(glm::vec2(7.f, 32.f - 8.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
         case RED:
             return glm::vec4(glm::vec2(26.f, 32.f - 10.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+        case ORANGE:
+            return glm::vec4(glm::vec2(7.f, 32.f - 20.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+        case LIGHTBLUE:
+            return glm::vec4(glm::vec2(23.f, 32.f - 15.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+        case PINK:
+            return glm::vec4(glm::vec2(19.f, 32.f - 21.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+        case DARKGREEN:
+            return glm::vec4(glm::vec2(29.f, 32.f - 8.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+        case TAN:
+            return glm::vec4(glm::vec2(11.f, 32.f - 6.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
         case OAK_LOG:
             if (top) {
                 return glm::vec4(glm::vec2(23.f, 32.f - 19.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);

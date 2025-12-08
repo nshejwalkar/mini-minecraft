@@ -70,6 +70,11 @@ BlockType Terrain::blocktypeFromColor(QColor col) {
     const QColor color_sand  = QColor(237, 201, 175);  // yellow
     const QColor color_bedrk = QColor(20, 20, 20);     // black
     const QColor color_purp  = QColor(128, 0, 128);
+    const QColor color_orange = QColor(255, 128, 0);
+    const QColor color_lightblue = QColor(173, 216, 230);    // light blue
+    const QColor color_pink      = QColor(255, 182, 193);    // pink
+    const QColor color_darkgreen = QColor(0, 100, 0);        // dark green
+    const QColor color_tan       = QColor(210, 180, 140);    // tan / light brown
 
     float dist_grass = colorDist(col, color_grass);
     float dist_lapis = colorDist(col, color_lapis);
@@ -80,6 +85,11 @@ BlockType Terrain::blocktypeFromColor(QColor col) {
     float dist_sand  = colorDist(col, color_sand);
     float dist_bedrk = colorDist(col, color_bedrk);
     float dist_purp  = colorDist(col, color_purp);
+    float dist_orange  = colorDist(col, color_orange);
+    float dist_lightblue = colorDist(col, color_lightblue);
+    float dist_pink      = colorDist(col, color_pink);
+    float dist_darkgreen = colorDist(col, color_darkgreen);
+    float dist_tan       = colorDist(col, color_tan);
 
     // green by default
     float minDist = dist_grass;
@@ -92,6 +102,12 @@ BlockType Terrain::blocktypeFromColor(QColor col) {
     if (dist_sand  < minDist) { minDist = dist_sand;  bestFit = SAND; }
     if (dist_bedrk < minDist) { minDist = dist_bedrk; bestFit = BEDROCK; }
     if (dist_purp  < minDist) { minDist = dist_purp;  bestFit = PURPLE; }
+    if (dist_orange< minDist) { minDist = dist_orange;  bestFit = ORANGE; }
+    if (dist_lightblue < minDist) { minDist = dist_lightblue; bestFit = LIGHTBLUE; }
+    if (dist_pink      < minDist) { minDist = dist_pink;      bestFit = PINK; }
+    if (dist_darkgreen < minDist) { minDist = dist_darkgreen; bestFit = DARKGREEN; }
+    if (dist_tan       < minDist) { minDist = dist_tan;       bestFit = TAN; }
+
 
     return bestFit;
 }
