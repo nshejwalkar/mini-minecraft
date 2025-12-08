@@ -362,6 +362,7 @@ void MyGL::applyHeightmap(const QImage& img, bool colored, QProgressDialog *prog
 
             QColor col = img.pixelColor(x, z);
             int columnHeight = qGray(col.rgb());  // the gray
+            // LOG("x " << x << " z " << z << " colheight " <<columnHeight);
             // gray = std::clamp(gray, 0, 255);
 
             uPtr<Chunk>& cUPtr = m_terrain.getChunkAt(worldX, worldZ);
@@ -384,8 +385,12 @@ void MyGL::applyHeightmap(const QImage& img, bool colored, QProgressDialog *prog
                 candidate = m_terrain.blocktypeFromColor(col);
             }
 
+            // clamp/interpolate between 80-160 so that it looks better
+            float t = columnHeight/255.f;
+            columnHeight = int(80+t * (160-80));
             for (int y = 0; y < 256; ++y) {
                 BlockType bt = (y <= columnHeight) ? candidate : EMPTY;
+                // BlockType bt = candidate;
                 m_terrain.setGlobalBlockAt(worldX, y, worldZ, bt);
             }
         }

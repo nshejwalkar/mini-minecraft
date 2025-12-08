@@ -170,7 +170,7 @@ void Player::processInputs(InputBundle &inputs) {
             m_acceleration += FLY_MULT * glm::vec3(0,-1,0);
         }
         if (inputs.ctrlPressed) m_acceleration *= 4;
-        if (inputs.altPressed) m_acceleration /= 4;
+        // if (inputs.altPressed) m_acceleration /= 4;
         if (m_touchingGround) {
             m_touchingGround = false;
         }
