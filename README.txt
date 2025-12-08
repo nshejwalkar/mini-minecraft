@@ -70,3 +70,6 @@ Milestone 3
 Neel:
 fog in lambert shader
 sound effects for walking, standing in water, submerged in water, inside lava. and background music
+restructured the multithreading code
+greyscale image as height map
+color image file as height map

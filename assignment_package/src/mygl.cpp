@@ -440,7 +440,10 @@ void MyGL::keyPressEvent(QKeyEvent *e) {
     if (e->key() == Qt::Key_Escape) {
         QApplication::quit();
     } else if (e->key() == Qt::Key_Right) {
-        m_player.rotateOnUpGlobal(-amount);
+        m_inputs.wPressed = true;
+        m_inputs.aPressed = true;
+        m_inputs.altPressed = true;
+        m_player.rotateOnUpGlobal(-amount/10);
     } else if (e->key() == Qt::Key_Left) {
         m_player.rotateOnUpGlobal(amount);
     } else if (e->key() == Qt::Key_Up) {
@@ -465,6 +468,8 @@ void MyGL::keyPressEvent(QKeyEvent *e) {
         m_inputs.shiftPressed = true;
     } else if (e->key() == Qt::Key_Control) {
         m_inputs.ctrlPressed = true;
+    } else if (e->key() == Qt::Key_Alt) {
+        m_inputs.altPressed = true;
     } else if (e->key() == Qt::Key_M) {
         this->lockMouse();
     } else if (e->key() == Qt::Key_F) {
@@ -495,9 +500,15 @@ void MyGL::keyReleaseEvent(QKeyEvent *e) {
         m_inputs.shiftPressed = false;
     } else if (e->key() == Qt::Key_Control) {
         m_inputs.ctrlPressed = false;
+    } else if (e->key() == Qt::Key_Alt) {
+        m_inputs.altPressed = false;
     } else if (e->key() == Qt::Key_T) {
         LOG("t released");
         m_inputs.tReleased = true;
+    } else if (e->key() == Qt::Key_Right) {
+        m_inputs.wPressed = false;
+        m_inputs.aPressed = false;
+        m_inputs.altPressed = false;
     }
 }
 
