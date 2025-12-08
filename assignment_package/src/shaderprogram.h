@@ -41,6 +41,7 @@ public:
     void setUnifMat4(std::string name, const glm::mat4 &m);
     void setUnifVec2(std::string name, const glm::vec2 &v);
     void setUnifVec3(std::string name, const glm::vec3 &v);
+    void setUnifVec4(std::string name, const glm::vec4 &v);
     void setUnifFloat(std::string name, float f);
     void setUnifInt(std::string name, int i);
     void setUnifArrayInt(std::string name, int offset, int i);

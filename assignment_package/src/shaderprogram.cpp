@@ -137,6 +137,18 @@ void ShaderProgram::setUnifVec3(std::string name, const glm::vec3 &v) {
         std::cout << "Error: could not find shader variable with name " << name << std::endl;
     }
 }
+void ShaderProgram::setUnifVec4(std::string name, const glm::vec4 &v) {
+    useMe();
+    try {
+        int handle = m_unifs.at(name);
+        if(handle != -1) {
+            context->glUniform4fv(handle, 1, &v[0]);
+        }
+    }
+    catch(std::out_of_range &e) {
+        std::cout << "Error: could not find shader variable with name " << name << std::endl;
+    }
+}
 void ShaderProgram::setUnifFloat(std::string name, float f) {
     useMe();
     try {

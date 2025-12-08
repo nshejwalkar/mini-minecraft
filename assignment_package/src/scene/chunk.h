@@ -44,6 +44,7 @@ struct EnumHash {
 // have Chunk inherit from Drawable
 class Chunk : public Drawable {
     friend class Terrain;
+    friend class MyGL;
 private:
     // All of the blocks contained within this Chunk
     std::array<BlockType, 65536> m_blocks;

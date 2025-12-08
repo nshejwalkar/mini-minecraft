@@ -1,6 +1,7 @@
 #version 330 core
 
 uniform sampler2D u_Texture;
+uniform float u_Time;
 
 in vec2 fs_UV;
 out vec4 out_Col;

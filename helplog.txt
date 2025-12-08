@@ -24,3 +24,8 @@ https://stackoverflow.com/questions/27581271/flat-qualifier-in-glsl
 Jay Katyan:
 
 I did not use help for this assignment.
+
+
+===========
+Milestone 3
+===========

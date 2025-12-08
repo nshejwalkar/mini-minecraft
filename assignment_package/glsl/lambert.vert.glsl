@@ -43,6 +43,7 @@ out float fs_BiomeTemp;
 
 const vec4 lightDir = normalize(vec4(0.5, 1, 0.75, 0));  // The direction of our virtual light, which is used to compute the shading of
                                         // the geometry in the fragment shader.
+// uniform vec4 lightDir;
 
 void main()
 {

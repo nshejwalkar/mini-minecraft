@@ -23,6 +23,7 @@ private slots:
     void on_actionQuit_triggered();
     void on_actionLoad_Greyscale_Heightmap_triggered();
     void on_actionLoad_Colored_Heightmap_triggered();
+    void on_actionPlay_Custom_Song_triggered();
 
     void on_actionCamera_Controls_triggered();
 

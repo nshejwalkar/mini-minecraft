@@ -170,6 +170,9 @@ void Player::processInputs(InputBundle &inputs) {
             m_acceleration += FLY_MULT * glm::vec3(0,-1,0);
         }
         if (inputs.ctrlPressed) m_acceleration *= 4;
+        if (m_touchingGround) {
+            m_touchingGround = false;
+        }
     }
     else {
         glm::vec3 fwd_2d = glm::normalize(glm::vec3(m_forward.x, 0.f, m_forward.z));

@@ -173,7 +173,7 @@ void main()
     float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
     // Avoid negative lighting values
     diffuseTerm = clamp(diffuseTerm, 0, 1);
-    float ambientTerm = 0.35;
+    float ambientTerm = 0.38;
     float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
     //to simulate ambient lighting. This ensures that faces that are not
     //lit by our point light are not completely black.
@@ -181,8 +181,8 @@ void main()
 
     // FOG
     float zdepth = -fs_ViewPos.z;
-    float fogNear = 200.0;
-    float fogFar = 1000.0;
+    float fogNear = 150.0;
+    float fogFar = 500.0;
     float fogInterp = clamp((zdepth - fogNear) / (fogFar - fogNear), 0.0, 1.0);
     vec3 fogColor = vec3(0.75, 0.78, 0.80);
     vec3 finalRgb = mix(lambert_col.rgb, fogColor, fogInterp);

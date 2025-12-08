@@ -36,6 +36,7 @@
     <addaction name="actionQuit"/>
     <addaction name="actionLoad_Greyscale_Heightmap"/>
     <addaction name="actionLoad_Colored_Heightmap"/>
+    <addaction name="actionPlay_Custom_Song"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -67,6 +68,11 @@
   <action name="actionLoad_Colored_Heightmap">
    <property name="text">
     <string>Load Colored Heightmap</string>
+   </property>
+  </action>
+  <action name="actionPlay_Custom_Song">
+   <property name="text">
+    <string>Play Custom Song</string>
    </property>
   </action>
  </widget>

@@ -6,6 +6,8 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QImage>
+#include <QFileDialog>
+#include <QProgressDialog>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -41,13 +43,14 @@ void MainWindow::on_actionCamera_Controls_triggered()
     cHelp.show();
 }
 
+void MainWindow::on_actionPlay_Custom_Song_triggered() {
+    QString path = QFileDialog::getOpenFileName(this, "Open Custom Song", QDir::homePath(), "Music (*.mp3)");
+    if (path.isEmpty()) return;
+    ui->mygl->playCustomSong(path);
+}
+
 void MainWindow::on_actionLoad_Greyscale_Heightmap_triggered() {
-    QString path = QFileDialog::getOpenFileName(
-        this,
-        "Open Greyscale Heightmap",
-        QDir::homePath(),
-        "Images (*.png *.jpg *.bmp)"
-        );
+    QString path = QFileDialog::getOpenFileName(this, "Open Greyscale Heightmap", QDir::homePath(), "Images (*.png *.jpg *.bmp)");
 
     if (path.isEmpty()) return;
 
@@ -57,17 +60,18 @@ void MainWindow::on_actionLoad_Greyscale_Heightmap_triggered() {
         return;
     }
 
-    ui->mygl->applyHeightmap(img, false);
     LOG("applying greyscale heightmap");
+    QProgressDialog progress("Applying greyscale heightmap...", "Cancel",
+                             0, img.height(), this);
+    progress.setWindowModality(Qt::ApplicationModal);
+    progress.setMinimumDuration(0);
+    progress.show();
+
+    ui->mygl->applyHeightmap(img, false, &progress);
 }
 
 void MainWindow::on_actionLoad_Colored_Heightmap_triggered() {
-    QString path = QFileDialog::getOpenFileName(
-        this,
-        "Open Colored Heightmap",
-        QDir::homePath(),
-        "Images (*.png *.jpg *.bmp)"
-        );
+    QString path = QFileDialog::getOpenFileName(this, "Open Colored Heightmap", QDir::homePath(), "Images (*.png *.jpg *.bmp)");
 
     if (path.isEmpty()) return;
 
@@ -77,7 +81,13 @@ void MainWindow::on_actionLoad_Colored_Heightmap_triggered() {
         return;
     }
 
-    ui->mygl->applyHeightmap(img, true);
     LOG("applying colored heightmap");
+    QProgressDialog progress("Applying colored heightmap...", "Cancel",
+                             0, img.height(), this);
+    progress.setWindowModality(Qt::ApplicationModal);
+    progress.setMinimumDuration(0);
+    progress.show();
+
+    ui->mygl->applyHeightmap(img, true, &progress);
 
 }

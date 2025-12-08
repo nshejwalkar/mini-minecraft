@@ -2,6 +2,7 @@
 #include <glm_includes.h>
 #include "constants.h"
 #include "debug.h"
+#include "qprogressdialog.h"
 #include "scene/chunk.h"
 
 #include <iostream>
@@ -26,7 +27,7 @@ MyGL::MyGL(QWidget *parent)
     last_time_polled(QDateTime::currentMSecsSinceEpoch()),
     last_mouse_pos(QPoint(width() / 2, height() / 2)),
     mouseDelta(0.f,0.f), textureAtlas(this),
-    currTime(0.f),
+    currTime(0.f), timeInLava(0.f),
     mouseRecenter(false), mouseLocked(false),
     m_playerbounds(this)
 {
@@ -122,6 +123,13 @@ void MyGL::initializeGL()
     postProcessFrameBuffer.create();
 }
 
+void MyGL::playCustomSong(QString music_path) {
+    m_bgmPlayer->stop();
+    m_bgmPlayer->setSource(QUrl::fromLocalFile(music_path));
+    m_bgmPlayer->setLoops(QMediaPlayer::Infinite);
+    m_bgmPlayer->play();
+}
+
 
 void MyGL::resizeGL(int w, int h) {
     //This code sets the concatenated view and perspective projection matrices used for
@@ -171,6 +179,8 @@ void MyGL::tick() {
     }
 
     BlockType cb = m_terrain.getGlobalBlockAt(m_player.mcr_position);
+    if (cb == LAVA) timeInLava++;
+    else timeInLava = 0.f;
     // LOG("current blocktype is " << static_cast<unsigned>(cb));
 
     // Load new chunks
@@ -224,6 +234,10 @@ void MyGL::paintGL() {
 
     // update time
     m_progLambert.setUnifFloat("u_Time", currTime);
+    selectedPostProcessShader->setUnifFloat("u_Time", currTime);
+    if (currCameraBlock == LAVA) {
+        postprocessLava.setUnifFloat("u_TimeInLava", timeInLava);
+    }
 
     glm::mat4 viewproj;
     glm::mat4 view;
@@ -255,6 +269,8 @@ void MyGL::paintGL() {
     m_progFlat.setUnifMat4("u_ViewProj", viewproj);
     m_progInstanced.setUnifMat4("u_ViewProj", viewproj);
 
+    // m_progLambert.setUnifVec4("lightDir", glm::vec4(m_player.mcr_camera.m_forward, 1.0));
+
     // rebind the atlas slot
     textureAtlas.bind(1);
 
@@ -269,15 +285,6 @@ void MyGL::paintGL() {
         glPointSize(1.f);
     }
 
-    glDisable(GL_DEPTH_TEST);
-    m_progFlat.setUnifMat4("u_Model", glm::mat4());
-    m_progFlat.draw(m_worldAxes);
-
-    m_progFlat.setUnifMat4("u_ViewProj", glm::mat4());
-    m_progFlat.setUnifMat4("u_Model", glm::mat4());
-    m_progFlat.draw(m_crosshair);
-    glEnable(GL_DEPTH_TEST);
-
     // Postprocessing
     glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
     glViewport(0, 0, width() * devicePixelRatio(), height() * devicePixelRatio());
@@ -288,6 +295,16 @@ void MyGL::paintGL() {
     selectedPostProcessShader->useMe();
     selectedPostProcessShader->setUnifInt("u_Texture", 0);
     selectedPostProcessShader->draw(quad);
+
+    glDisable(GL_DEPTH_TEST);
+    m_progFlat.setUnifMat4("u_Model", glm::mat4());
+    m_progFlat.draw(m_worldAxes);
+
+    m_progFlat.setUnifMat4("u_ViewProj", glm::mat4());
+    m_progFlat.setUnifMat4("u_Model", glm::mat4());
+    m_progFlat.draw(m_crosshair);
+    glEnable(GL_DEPTH_TEST);
+
 }
 
 // Change this so it renders the nine zones of generated
@@ -310,7 +327,7 @@ void MyGL::renderTerrain() {
     m_terrain.draw(minX, maxX, minZ, maxZ, &m_progLambert);
 }
 
-void MyGL::applyHeightmap(const QImage& img, bool colored) {
+void MyGL::applyHeightmap(const QImage& img, bool colored, QProgressDialog *progress) {
     int width = img.width();
     int height = img.height();
 
@@ -323,8 +340,18 @@ void MyGL::applyHeightmap(const QImage& img, bool colored) {
     std::unordered_set<Chunk*> affectedChunks;
 
     for (int z = 0; z < height; z++) {
+        // update the progress bar in the mainwindow action
+        if (z%LOADING_GRANULARITY==0) {
+            progress->setValue(z);
+            if (progress->wasCanceled()) {  // stop asap
+                return;
+            }
+            QCoreApplication::processEvents();  // UI repaint
+        }
+
         for (int x = 0; x < width; x++) {
             // LOG("pixel: " << x << ", " << z);
+
             const int worldX = startX + x;
             const int worldZ = startZ + z;
 
@@ -338,7 +365,17 @@ void MyGL::applyHeightmap(const QImage& img, bool colored) {
             // gray = std::clamp(gray, 0, 255);
 
             uPtr<Chunk>& cUPtr = m_terrain.getChunkAt(worldX, worldZ);
-            affectedChunks.insert(cUPtr.get());
+            auto c = cUPtr.get();
+            affectedChunks.insert(c);
+
+            // make sure to add all the neighbor chunks as well, will run into side wall issues if not
+            // m_neighbors has <Direction, Chunk*>s
+            for (auto& pair : c->m_neighbors) {
+                Chunk* nb = pair.second;
+                if (nb) {
+                    affectedChunks.insert(nb);
+                }
+            }
 
             BlockType candidate;
             if (!colored) {

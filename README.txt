@@ -62,3 +62,11 @@ For each chunk, I created 2 pairs of VBOs, one for transparent and one for opaqu
 
 Other features:
 I slightly restructured the terrain generation to make it easier to set up for multithreading by introducing the terrain generation zone primitive and reordering chunk loops.
+
+
+===========
+Milestone 3
+===========
+Neel:
+fog in lambert shader
+sound effects for walking, standing in water, submerged in water, inside lava. and background music

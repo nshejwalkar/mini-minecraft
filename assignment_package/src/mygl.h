@@ -3,6 +3,7 @@
 
 #include "openglcontext.h"
 #include "qmediaplayer.h"
+#include "qprogressdialog.h"
 #include "scene/crosshair.h"
 #include "scene/playerbounds.h"
 #include "shaderprogram.h"
@@ -53,12 +54,14 @@ private:
     GLuint ch_vbo;
     Texture textureAtlas;  // stores the big map of all block textures
     float currTime;
+    float timeInLava;
 
     bool mouseRecenter;
     bool mouseLocked;
     bool m_thirdPersonDebug = false;
     PlayerBounds m_playerbounds;
 
+    // for the bgm
     QMediaPlayer* m_bgmPlayer;
     QAudioOutput* m_bgmOutput;
 
@@ -91,7 +94,9 @@ public:
     void renderTerrain();
 
     // called from mainwindow.cpp
-    void applyHeightmap(const QImage& img, bool colored);
+    void applyHeightmap(const QImage& img, bool colored, QProgressDialog* progress);
+
+    void playCustomSong(QString music_path);
 
 protected:
     // Automatically invoked when the user
