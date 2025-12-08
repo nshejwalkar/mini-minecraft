@@ -200,8 +200,8 @@ void MyGL::paintGL() {
 
     // Render postprocess framebuffer
     postProcessFrameBuffer.bindFrameBuffer();
-    // glViewport(0, 0, width() * devicePixelRatio(), height() * devicePixelRatio());
-    glViewport(0, 0, width(), height());
+    glViewport(0, 0, width() * devicePixelRatio(), height() * devicePixelRatio());
+    // glViewport(0, 0, width(), height());
 
     // Clear the screen so that we only see newly drawn images
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

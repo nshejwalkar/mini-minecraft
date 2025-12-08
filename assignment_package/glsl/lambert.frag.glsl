@@ -24,6 +24,7 @@ in vec4 fs_LightVec;
 in vec4 fs_Col;
 in vec2 fs_UV;
 flat in int fs_anim;
+flat in int fs_overlay;
 
 out vec4 out_Col; // This is the final output color that you will see on your
 // screen for the pixel that is currently being processed.
@@ -37,16 +38,52 @@ void main()
 
     // ANIMATION
     if (fs_anim != 0) {
-        float u16 = fs_UV.x * 16.0;
-        float tile = floor(u16);
-        float frac = fract(u16);
+        float u64 = fs_UV.x * 64.0;
+        float tile = floor(u64);
+        float frac = fract(u64);
         float speed = 0.025;
         float newFrac = fract(frac + u_Time * speed);
 
-        float animatedU16 = tile + newFrac;
-        uv.x = animatedU16 / 16.0;
+        float animatedU64 = tile + newFrac;
+        uv.x = animatedU64 / 64.0;
     }
-    vec4 diffuseColor = texture2D(u_Texture, uv);
+    vec4 diffuseColor = texture(u_Texture, uv);
+    
+    // If overlay, apply biome tinting
+    if (fs_overlay > 0) {
+        // Get tile offset
+        vec2 tileOffset = fract(uv * vec2(64.0, 32.0));
+        
+        // Determine block color
+        vec2 baseUV;
+        vec3 biomeColor;
+        
+        // Grass top
+        if (fs_overlay == 1) {
+            biomeColor = vec3(78.0, 109.0, 59.0) / 255.0;
+            baseUV = vec2(28.0, 32.0 - 10.0 - 1.0) / vec2(64.0, 32.0);
+        }
+        
+        // Grass side
+        else if (fs_overlay == 2) {
+            biomeColor = vec3(78.0, 109.0, 59.0) / 255.0;
+            baseUV = vec2(28.0, 32.0 - 8.0 - 1.0) / vec2(64.0, 32.0);
+        }
+        
+        // Water
+        else if (fs_overlay == 3) {
+            biomeColor = vec3(45.0, 65.0, 119.0) / 255.0;
+            baseUV = vec2(6.0, 32.0 - 2.0 - 1.0) / vec2(64.0, 32.0);
+        }
+        
+        // Sample grayscale texture
+        vec4 grayscaleColor = texture(u_Texture, baseUV + tileOffset / vec2(64.0, 32.0));
+        
+        // If grayscale value positive, tint the diffuse color
+        if (grayscaleColor.r > 0.01) {
+            diffuseColor.rgb = biomeColor * (grayscaleColor.r / 0.5);
+        }
+    }
 
     // LAMBERT SHADING
     // Calculate the diffuse term for Lambert shading

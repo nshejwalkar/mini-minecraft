@@ -80,10 +80,10 @@ void ShaderProgram::parseShaderSourceForVariables(char *vertSource, char *fragSo
     QStringList vs_list = vs.split("\n", Qt::SkipEmptyParts);
     for(QString &line : vs_list) {
         QStringList sub = line.split(" ", Qt::SkipEmptyParts);
-        if(sub[0] == "uniform") {
+        if(sub.size() >= 3 && sub[0] == "uniform") {
             this->addUniform(sub[2].left(sub[2].indexOf(";")).toStdString().c_str());
         }
-        if(sub[0] == "in") {
+        if(sub.size() >= 3 && sub[0] == "in") {
             this->addAttrib(sub[2].left(sub[2].indexOf(";")).toStdString().c_str());
         }
     }
@@ -91,7 +91,7 @@ void ShaderProgram::parseShaderSourceForVariables(char *vertSource, char *fragSo
     QStringList fs_list = fs.split("\n", Qt::SkipEmptyParts);
     for(QString &line : fs_list) {
         QStringList sub = line.split(" ", Qt::SkipEmptyParts);
-        if(sub[0] == "uniform") {
+        if(sub.size() >= 3 && sub[0] == "uniform") {
             this->addUniform(sub[2].left(sub[2].indexOf(";")).toStdString().c_str());
         }
     }
@@ -282,7 +282,7 @@ void ShaderProgram::drawInterleaved(Drawable &d) {
             context->glVertexAttribPointer(m_attribs["vs_Col"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)(2*sizeof(glm::vec4)));
         }
 
-        if (m_attribs["vs_UV"] != -1) {
+        if (m_attribs.count("vs_UV") && m_attribs["vs_UV"] != -1) {
             context->glEnableVertexAttribArray(m_attribs["vs_UV"]);
             context->glVertexAttribPointer(m_attribs["vs_UV"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)(3*sizeof(glm::vec4)));
         }
@@ -295,7 +295,6 @@ void ShaderProgram::drawInterleaved(Drawable &d) {
     if (m_attribs["vs_Nor"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_Nor"]);
     if (m_attribs["vs_Col"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_Col"]);
     if (m_attribs["vs_UV"] != -1) context->glDisableVertexAttribArray(m_attribs["vs_UV"]);
-
     context->printGLErrorLog();
 }
 
@@ -323,7 +322,7 @@ void ShaderProgram::drawInterleavedTransparent(Drawable &d) {
             context->glVertexAttribPointer(m_attribs["vs_Col"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)(2*sizeof(glm::vec4)));
         }
 
-        if (m_attribs["vs_UV"] != -1) {
+        if (m_attribs.count("vs_UV") && m_attribs["vs_UV"] != -1) {
             context->glEnableVertexAttribArray(m_attribs["vs_UV"]);
             context->glVertexAttribPointer(m_attribs["vs_UV"], 4, GL_FLOAT, false, 4 * sizeof(glm::vec4), (void*)(3*sizeof(glm::vec4)));
         }
