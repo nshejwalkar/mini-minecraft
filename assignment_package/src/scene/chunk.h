@@ -15,7 +15,8 @@
 // block types, but in the scope of this project we'll never get anywhere near that many.
 enum BlockType : unsigned char
 {
-    EMPTY, GRASS, DIRT, STONE, WATER, SNOW, SAND, LAVA, BEDROCK, SNOWY_GRASS
+    EMPTY, GRASS, DIRT, STONE, WATER, SNOW, SAND, LAVA, BEDROCK, SNOWY_GRASS,
+    OAK_LOG, OAK_LEAVES, BIRCH_LOG, BIRCH_LEAVES, CACTUS
 };
 
 // The six cardinal directions in 3D space
@@ -46,6 +47,7 @@ class Chunk : public Drawable {
 private:
     // All of the blocks contained within this Chunk
     std::array<BlockType, 65536> m_blocks;
+    std::array<float, 256> m_biomeTemperature;
 
     // This Chunk's four neighbors to the north, south, east, and west
     // The third input to this map just lets us use a Direction as

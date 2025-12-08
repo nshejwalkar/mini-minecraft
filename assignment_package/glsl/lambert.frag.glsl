@@ -26,6 +26,7 @@ in vec2 fs_UV;
 flat in int fs_anim;
 flat in int fs_overlay;
 in vec3 fs_WorldPos;
+in float fs_BiomeTemp;
 
 out vec4 out_Col; // This is the final output color that you will see on your
 // screen for the pixel that is currently being processed.
@@ -71,8 +72,8 @@ float getTemperatureNoise(vec2 pos) {
 }
 
 vec3 interpolateBiomeColor(float temp, vec3 coldColor, vec3 warmColor, vec3 hotColor) {
-    const float COLD_THRESHOLD = -0.15;
-    const float HOT_THRESHOLD = 0.10;
+    const float COLD_THRESHOLD = -0.2;
+    const float HOT_THRESHOLD = 0.15;
     
     if (temp < COLD_THRESHOLD) {
         return coldColor;
@@ -109,8 +110,8 @@ void main()
     
     // If overlay, apply biome tinting
     if (fs_overlay > 0) {
-        // Get temperature noise at world position
-        float temp = getTemperatureNoise(fs_WorldPos.xz);
+        // Get temperature
+        float temp = fs_BiomeTemp;
         
         // Get tile offset
         vec2 tileOffset = fract(uv * vec2(64.0, 32.0));
@@ -144,6 +145,18 @@ void main()
             vec3 desertWater = vec3(61.0, 110.0, 124.0) / 255.0;
             biomeColor = interpolateBiomeColor(temp, snowyWater, plainsWater, desertWater);
             baseUV = vec2(6.0, 32.0 - 2.0 - 1.0) / vec2(64.0, 32.0);
+        }
+        
+        // Oak leaves
+        else if (fs_overlay == 4) {
+            biomeColor = vec3(56.0, 82.0, 40.0) / 255.0;
+            baseUV = vec2(21.0, 32.0 - 19.0 - 1.0) / vec2(64.0, 32.0);
+        }
+        
+        // Birch leaves
+        else if (fs_overlay == 5) {
+            biomeColor = vec3(56.0, 73.0, 62.0) / 255.0;
+            baseUV = vec2(21.0, 32.0 - 19.0 - 1.0) / vec2(64.0, 32.0);
         }
         
         // Sample grayscale texture

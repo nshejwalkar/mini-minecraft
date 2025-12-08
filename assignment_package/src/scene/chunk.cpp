@@ -356,6 +356,16 @@ glm::vec4 Chunk::getColor(BlockType blockType) const {
             return glm::vec4(glm::vec3(0.1f, 0.1f, 0.1f), 1.f);
         case SNOWY_GRASS:
             return glm::vec4(glm::vec3(1.f), 1.f);
+        case OAK_LOG:
+            return glm::vec4(glm::vec3(102.f, 76.f, 51.f) / 255.f, 1.f);
+        case OAK_LEAVES:
+            return glm::vec4(glm::vec3(56.f, 82.f, 40.f) / 255.f, 1.f);
+        case BIRCH_LOG:
+            return glm::vec4(glm::vec3(216.f, 216.f, 216.f) / 255.f, 1.f);
+        case BIRCH_LEAVES:
+            return glm::vec4(glm::vec3(56.f, 73.f, 62.f) / 255.f, 1.f);
+        case CACTUS:
+            return glm::vec4(glm::vec3(86.f, 140.f, 63.f) / 255.f, 1.f);
         default:
             return glm::vec4(glm::vec3(1.f, 0.f, 1.f), 1.f);
     }
@@ -397,6 +407,33 @@ glm::vec4 Chunk::getBottomLeftUV(BlockType blockType, bool top) const {
             }
         case SAND:
             return glm::vec4(glm::vec2(1.f, 32.f - 26.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+        case OAK_LOG:
+            if (top) {
+                return glm::vec4(glm::vec2(23.f, 32.f - 19.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+            }
+            else {
+                return glm::vec4(glm::vec2(22.f, 32.f - 19.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+            }
+        case OAK_LEAVES:
+            // Biome tinting overlay (w = 4)
+            return glm::vec4(glm::vec2(21.f, 32.f - 19.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 4.f);
+        case BIRCH_LOG:
+            if (top) {
+                return glm::vec4(glm::vec2(14.f, 32.f - 1.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+            }
+            else {
+                return glm::vec4(glm::vec2(14.f, 32.f - 0.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+            }
+        case BIRCH_LEAVES:
+            // Biome tinting overlay (w = 5)
+            return glm::vec4(glm::vec2(21.f, 32.f - 19.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 5.f);
+        case CACTUS:
+            if (top) {
+                return glm::vec4(glm::vec2(14.f, 32.f - 10.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+            }
+            else {
+                return glm::vec4(glm::vec2(13.f, 32.f - 10.f - 1.f) / glm::vec2(64.f, 32.f), animFlag, 0.f);
+            }
         default:
             return glm::vec4(0,0,0,0);
         }
