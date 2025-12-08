@@ -247,7 +247,7 @@ void MyGL::paintGL() {
     if (m_thirdPersonDebug) {
         m_playerbounds.updateFromVerts(m_player.getCollisionVerts());
         m_progFlat.setUnifMat4("u_ViewProj", viewproj);
-        m_progFlat.setUnifMat4("ddu_Model", glm::mat4(1.f));
+        m_progFlat.setUnifMat4("u_Model", glm::mat4(1.f));
         glPointSize(8.f);
         m_progFlat.draw(m_playerbounds);
         glPointSize(1.f);
