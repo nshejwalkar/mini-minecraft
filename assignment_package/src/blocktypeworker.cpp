@@ -30,6 +30,11 @@ void BlockTypeWorker::run() {
                     // LOG("doing blocks at " << worldX << " " << worldZ);
 
                     int maxHeight = terrain->m_world.getHeight(worldX, worldZ);
+                    World::Biome biome = terrain->m_world.getBiome(worldX, worldZ);
+                    
+                    // Store biome temperature
+                    float biomeTemp = terrain->m_world.getTemperatureNoise(worldX, worldZ);
+                    chunk->setBiomeTemperature(i, k, biomeTemp);
 
                     for (int currHeight = 0; currHeight < 256; ++currHeight) {
                         // LOG("doing blocks at " << worldX << " " << worldZ << " height " << currHeight);
@@ -42,7 +47,7 @@ void BlockTypeWorker::run() {
 
                         // normal
                         else {
-                            blockType = terrain->m_world.getBlockType(currHeight, maxHeight);
+                            blockType = terrain->m_world.getBlockType(currHeight, maxHeight, biome);
                         }
 
                         if (blockType != BlockType::EMPTY) {

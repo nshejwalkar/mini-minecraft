@@ -5,6 +5,8 @@
 
 class World
 {
+friend class Terrain;
+friend class BlockTypeWorker;
 private:
 
     //========================================================
@@ -24,6 +26,21 @@ private:
     static constexpr int SAND_HEIGHT = 88;
     static constexpr int CAVE_HEIGHT = 80;
     static constexpr int LAVA_HEIGHT = 25;
+
+    // Biome constants
+    enum Biome : unsigned char {
+        PLAINS,
+        SNOWY_PLAINS,
+        DESERT
+    };
+
+    enum Temp : unsigned char {
+        COLD,
+        WARM,
+        HOT
+    };
+
+    static constexpr float TEMP_SCALE = 0.001f;
 
     //========================================================
     // Caves
@@ -68,6 +85,15 @@ private:
     float evaluateContinentalness(float x) const;
     float getContinentalnessNoise(float x, float z) const;
 
+    // Biome functions
+    Biome getBiome(float x, float z) const;
+    Temp getTemperature(float x, float z) const;
+
+    // Per-biome block type functions
+    BlockType getPlainsBlock(int currentHeight, int maxHeight) const;
+    BlockType getSnowyPlainsBlock(int currentHeight, int maxHeight) const;
+    BlockType getDesertBlock(int currentHeight, int maxHeight) const;
+
 public:
     // Constructor
     World();
@@ -79,6 +105,9 @@ public:
     bool isCave(int x, int y, int z) const;
 
     // Gets block types
-    BlockType getBlockType(int currentHeight, int maxHeight) const;
+    BlockType getBlockType(int currentHeight, int maxHeight, Biome biome) const;
     BlockType getCaveBlockType(int y) const;
+    
+    // Get temperature noise
+    float getTemperatureNoise(float x, float z) const;
 };
