@@ -8,6 +8,8 @@
 #include <QApplication>
 #include <QKeyEvent>
 #include <QDateTime>
+#include <QMediaPlayer>
+#include <QAudioOutput>
 
 #include <chrono>
 
@@ -73,6 +75,16 @@ void MyGL::initializeGL()
 
     // Create a Vertex Attribute Object
     glGenVertexArrays(1, &vao);
+
+    m_bgmOutput = new QAudioOutput(this);
+    m_bgmOutput->setVolume(BGM_VOLUME);
+    m_bgmPlayer = new QMediaPlayer(this);
+    m_bgmPlayer->setAudioOutput(m_bgmOutput);
+    m_bgmPlayer->setSource(QUrl("qrc:/bgms/bgms/regular_bgm.mp3"));
+    m_bgmPlayer->setLoops(QMediaPlayer::Infinite);
+    m_bgmPlayer->play();
+    qDebug() << "BGM source =" << m_bgmPlayer->source();
+    qDebug() << "BGM error =" << m_bgmPlayer->errorString();
 
     //Create the instance of the world axes
     m_worldAxes.createVBOdata();
@@ -200,8 +212,11 @@ void MyGL::paintGL() {
 
     // Render postprocess framebuffer
     postProcessFrameBuffer.bindFrameBuffer();
+#ifdef Q_OS_WIN
+    glViewport(0, 0, width(), height());
+#else
     glViewport(0, 0, width() * devicePixelRatio(), height() * devicePixelRatio());
-    // glViewport(0, 0, width(), height());
+#endif
 
     // Clear the screen so that we only see newly drawn images
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

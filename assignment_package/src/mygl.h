@@ -2,6 +2,7 @@
 #define MYGL_H
 
 #include "openglcontext.h"
+#include "qmediaplayer.h"
 #include "scene/crosshair.h"
 #include "scene/playerbounds.h"
 #include "shaderprogram.h"
@@ -57,6 +58,9 @@ private:
     bool mouseLocked;
     bool m_thirdPersonDebug = false;
     PlayerBounds m_playerbounds;
+
+    QMediaPlayer* m_bgmPlayer;
+    QAudioOutput* m_bgmOutput;
 
     void resetPlayer();
 

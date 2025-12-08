@@ -57,4 +57,6 @@ HEADERS += \
     $$PWD/vboworker.h
 
 RESOURCES += \
-    $$PWD/../glsl.qrc
+    $$PWD/../glsl.qrc \
+    $$PWD/../sounds.qrc \
+    $$PWD/../bgms.qrc

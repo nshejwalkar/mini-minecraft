@@ -15,6 +15,13 @@ constexpr float V_EPS = 0.0001f;
 constexpr int RENDER_RADIUS = 2;  // tgzs
 #define USE_TERRAIN_THREADS 1  // for debug
 
+/******** VOLUME *******/
+constexpr float BGM_VOLUME = 0.5f;
+constexpr float WALK_VOLUME = 1.0f;
+constexpr float WATER_WALK_VOLUME = 0.25f;
+constexpr float UNDERWATER_VOLUME = 0.8f;
+constexpr float LAVA_VOLUME = 0.3f;
+
 /******** OTHER ********/
 constexpr float HIT_DISTANCE = 3.f;
 constexpr float PLAYER_BOUNDARY = 0.02;
