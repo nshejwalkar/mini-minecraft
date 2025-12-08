@@ -68,8 +68,18 @@ I slightly restructured the terrain generation to make it easier to set up for m
 Milestone 3
 ===========
 Neel:
-fog in lambert shader
-sound effects for walking, standing in water, submerged in water, inside lava. and background music
-restructured the multithreading code
-greyscale image as height map
-color image file as height map
+For Milestone 3, I added several features.
+I added a fog effect in the lambert fragment shader by using the z-depth of a fragment and interpolating/mixing between a near and far boundary for the fog.
+I updated the underwater and lava post process shaders. For the former, I used a simple sin/cos distortion, and for the latter, I used worley noise to cause a mosaic distortion and other randomized time effects.
+I added sound effects for walking, standing in water, being submerged in water, and being inside lava using QSoundEffect.
+I added background music using QMediaPlayer, as well as a button for users to change the background music.
+I added both greyscale and color image uploads, with the height of the column based on the grayscale value of the corresponding pixel for each image. Figuring out how to map pixel colors to discretized block colors was challenging, but we figured out a method using minimum distance.
+I restructured the multithreading code, improving on the modularity of the Chunk and Terrain classes by splitting up and simplfying the logic in several methods.
+
+Jay:
+For Milestone 3, I focused on implementing biomes, procedural assets (trees, cacti), procedural grass/water colors, and generally improving the performance of world generation through efficient 3D noise techniques.
+For the biomes, I leveraged a combination of perlin noise maps to determine biome boundaries and biome temperatures, and introduced various world elements into our program.
+Additionally, I completely reworked cave generation, using the OpenSimplex2S algorithm for efficient and natural cave generation. Specifically, I focused on creating more "organic" caves compared to previous iterations.
+I also created shader data to overlay grayscale grass and water blocks, allowing me to smoothly interpolate grass and water temperature across different biomes. As a result, grass and water temperature more directly match the biome that they are in, with colder biomes having darker blue water and cooler grass, and warmer biomes having brighter blue water and warmer grass.
+Finally, I created various procedurally generated assets, such as cacti and trees. The cacti vary in height, and the trees vary in leave formations (through the usage of perlin noise functions to control leave randomness). The assets are placed around the world using Worley noise.
+I also added a new, more recent texture pack into the world, mimicking modern MineCraft's textures more directly.
