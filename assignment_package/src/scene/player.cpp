@@ -46,14 +46,14 @@ Player::~Player()
 
 std::array<glm::vec3, 8> Player::getCollisionVerts() const {
     std::array<glm::vec3, 8> vertices = {
-        m_position + glm::vec3(0.5,0,0.5) + glm::vec3(-PLAYER_BOUNDARY, 0, -PLAYER_BOUNDARY),
-        m_position + glm::vec3(0.5,0,-0.5) + glm::vec3(-PLAYER_BOUNDARY, 0, PLAYER_BOUNDARY),
-        m_position + glm::vec3(-0.5,0,0.5) + glm::vec3(PLAYER_BOUNDARY, 0, -PLAYER_BOUNDARY),
-        m_position + glm::vec3(-0.5,0,-0.5) + glm::vec3(PLAYER_BOUNDARY, 0, PLAYER_BOUNDARY),
-        m_position + glm::vec3(0.5,2,0.5) + glm::vec3(-PLAYER_BOUNDARY, 0, -PLAYER_BOUNDARY),
-        m_position + glm::vec3(0.5,2,-0.5) + glm::vec3(-PLAYER_BOUNDARY, 0, PLAYER_BOUNDARY),
-        m_position + glm::vec3(-0.5,2,0.5) + glm::vec3(PLAYER_BOUNDARY, 0, -PLAYER_BOUNDARY),
-        m_position + glm::vec3(-0.5,2,-0.5) + glm::vec3(PLAYER_BOUNDARY, 0, PLAYER_BOUNDARY)
+        m_position + glm::vec3(0.5 - PLAYER_BOUNDARY, 0, 0.5 - PLAYER_BOUNDARY),
+        m_position + glm::vec3(0.5 - PLAYER_BOUNDARY, 0, -0.5 + PLAYER_BOUNDARY),
+        m_position + glm::vec3(-0.5 + PLAYER_BOUNDARY, 0, 0.5 - PLAYER_BOUNDARY),
+        m_position + glm::vec3(-0.5 + PLAYER_BOUNDARY, 0, -0.5 + PLAYER_BOUNDARY),
+        m_position + glm::vec3(0.5 - PLAYER_BOUNDARY, 2, 0.5 - PLAYER_BOUNDARY),
+        m_position + glm::vec3(0.5 - PLAYER_BOUNDARY, 2, -0.5 + PLAYER_BOUNDARY),
+        m_position + glm::vec3(-0.5 + PLAYER_BOUNDARY, 2, 0.5 - PLAYER_BOUNDARY),
+        m_position + glm::vec3(-0.5 + PLAYER_BOUNDARY, 2, -0.5 + PLAYER_BOUNDARY)
     };
     return vertices;
 }
@@ -275,14 +275,14 @@ bool Player::gridMarch(glm::vec3 rayOrigin,
 // grid marching should return the smallest distance
 glm::vec3 Player::calculateCollision() {
     std::array<glm::vec3, 8> vertices = {
-        m_position + glm::vec3(0.5,0,0.5) + glm::vec3(-PLAYER_BOUNDARY, 0, -PLAYER_BOUNDARY),
-        m_position + glm::vec3(0.5,0,-0.5) + glm::vec3(-PLAYER_BOUNDARY, 0, PLAYER_BOUNDARY),
-        m_position + glm::vec3(-0.5,0,0.5) + glm::vec3(PLAYER_BOUNDARY, 0, -PLAYER_BOUNDARY),
-        m_position + glm::vec3(-0.5,0,-0.5) + glm::vec3(PLAYER_BOUNDARY, 0, PLAYER_BOUNDARY),
-        m_position + glm::vec3(0.5,2,0.5) + glm::vec3(-PLAYER_BOUNDARY, 0, -PLAYER_BOUNDARY),
-        m_position + glm::vec3(0.5,2,-0.5) + glm::vec3(-PLAYER_BOUNDARY, 0, PLAYER_BOUNDARY),
-        m_position + glm::vec3(-0.5,2,0.5) + glm::vec3(PLAYER_BOUNDARY, 0, -PLAYER_BOUNDARY),
-        m_position + glm::vec3(-0.5,2,-0.5) + glm::vec3(PLAYER_BOUNDARY, 0, PLAYER_BOUNDARY)
+        m_position + glm::vec3(0.5 - PLAYER_BOUNDARY, 0, 0.5 - PLAYER_BOUNDARY),
+        m_position + glm::vec3(0.5 - PLAYER_BOUNDARY, 0, -0.5 + PLAYER_BOUNDARY),
+        m_position + glm::vec3(-0.5 + PLAYER_BOUNDARY, 0, 0.5 - PLAYER_BOUNDARY),
+        m_position + glm::vec3(-0.5 + PLAYER_BOUNDARY, 0, -0.5 + PLAYER_BOUNDARY),
+        m_position + glm::vec3(0.5 - PLAYER_BOUNDARY, 2, 0.5 - PLAYER_BOUNDARY),
+        m_position + glm::vec3(0.5 - PLAYER_BOUNDARY, 2, -0.5 + PLAYER_BOUNDARY),
+        m_position + glm::vec3(-0.5 + PLAYER_BOUNDARY, 2, 0.5 - PLAYER_BOUNDARY),
+        m_position + glm::vec3(-0.5 + PLAYER_BOUNDARY, 2, -0.5 + PLAYER_BOUNDARY)
     };
     glm::vec3 smallestCollision = glm::vec3(1000);
 
@@ -411,7 +411,7 @@ void Player::computePhysics(float dT, const Terrain &terrain) {
 
     m_velocity = (DRAG*m_velocity) + m_acceleration * dT;
 
-    glm::vec3 exp_dist = m_velocity * dT;
+    glm::vec3 exp_dist = m_velocity;
     if (!noclip_mode) {
         glm::vec3 minColDist = this->calculateCollision();
 
