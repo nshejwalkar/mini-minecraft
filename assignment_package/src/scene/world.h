@@ -17,7 +17,7 @@ private:
     Noise noise;
 
     // Random seed
-    static constexpr int SEED = 42;
+    static constexpr int SEED = 21;
 
     // Height constants
     static constexpr int WATER_HEIGHT = 87;
