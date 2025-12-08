@@ -83,6 +83,8 @@ public:
     Terrain(OpenGLContext *context);
     ~Terrain();
 
+    BlockType blocktypeFromColor(QColor col);
+
     // Instantiates a new Chunk and stores it in
     // our chunk map at the given coordinates.
     // Returns a pointer to the created Chunk.

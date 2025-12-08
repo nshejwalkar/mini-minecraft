@@ -7,6 +7,7 @@
 #include "constants.h"
 #include "vboworker.h"
 #include <QThreadPool>
+#include <cmath>
 
 Terrain::Terrain(OpenGLContext *context)
     : m_chunks(), m_generatedTerrain(), m_geomCube(context),
@@ -49,6 +50,50 @@ glm::ivec2 toCoords(int64_t k) {
     int64_t x = (k >> 32);
 
     return glm::ivec2(x, z);
+}
+
+static inline float colorDist(const QColor& a, const QColor& b) {
+    float dr = float(a.red() - b.red());
+    float dg = float(a.green() - b.green());
+    float db = float(a.blue() - b.blue());
+    return dr*dr + dg*dg + db*db;  // not exactly distance but it doesnt matter
+}
+
+BlockType Terrain::blocktypeFromColor(QColor col) {
+    // EMPTY, GRASS, DIRT, STONE, WATER, SNOW, SAND, LAVA, BEDROCK, SNOWY_GRASS
+    const QColor color_grass = QColor(34, 139, 34);    // green
+    const QColor color_lapis = QColor(30, 144, 255);   // blue
+    const QColor color_red  = QColor(255, 69, 0);     // red
+    const QColor color_dirt  = QColor(139, 69, 19);    // brown
+    const QColor color_snow  = QColor(240, 240, 240);  // white
+    const QColor color_stone = QColor(130, 130, 130);  // grey
+    const QColor color_sand  = QColor(237, 201, 175);  // yellow
+    const QColor color_bedrk = QColor(20, 20, 20);     // black
+    const QColor color_purp  = QColor(128, 0, 128);
+
+    float dist_grass = colorDist(col, color_grass);
+    float dist_lapis = colorDist(col, color_lapis);
+    float dist_red  = colorDist(col, color_red);
+    float dist_dirt  = colorDist(col, color_dirt);
+    float dist_snow  = colorDist(col, color_snow);
+    float dist_stone = colorDist(col, color_stone);
+    float dist_sand  = colorDist(col, color_sand);
+    float dist_bedrk = colorDist(col, color_bedrk);
+    float dist_purp  = colorDist(col, color_purp);
+
+    // green by default
+    float minDist = dist_grass;
+    BlockType bestFit = GRASS;
+    if (dist_lapis < minDist) { minDist = dist_lapis; bestFit = LAPIS; }
+    if (dist_red   < minDist) { minDist = dist_red;   bestFit = RED; }
+    if (dist_dirt  < minDist) { minDist = dist_dirt;  bestFit = DIRT; }
+    if (dist_snow  < minDist) { minDist = dist_snow;  bestFit = SNOW; }
+    if (dist_stone < minDist) { minDist = dist_stone; bestFit = STONE; }
+    if (dist_sand  < minDist) { minDist = dist_sand;  bestFit = SAND; }
+    if (dist_bedrk < minDist) { minDist = dist_bedrk; bestFit = BEDROCK; }
+    if (dist_purp  < minDist) { minDist = dist_purp;  bestFit = PURPLE; }
+
+    return bestFit;
 }
 
 // Surround calls to this with try-catch if you don't know whether

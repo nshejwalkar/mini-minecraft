@@ -98,8 +98,8 @@ void main()
 
     // FOG
     float zdepth = -fs_ViewPos.z;
-    float fogNear = 80.0;
-    float fogFar = 200.0;
+    float fogNear = 200.0;
+    float fogFar = 1000.0;
     float fogInterp = clamp((zdepth - fogNear) / (fogFar - fogNear), 0.0, 1.0);
     vec3 fogColor = vec3(0.75, 0.78, 0.80);
     vec3 finalRgb = mix(lambert_col.rgb, fogColor, fogInterp);

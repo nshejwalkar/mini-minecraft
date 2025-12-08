@@ -5,6 +5,7 @@
 #include <QSoundEffect>
 
 class Player : public Entity {
+    friend class MyGL;
 private:
     glm::vec3 m_velocity, m_acceleration;
     Camera m_camera;

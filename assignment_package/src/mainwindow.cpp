@@ -1,7 +1,11 @@
 #include "mainwindow.h"
 #include <ui_mainwindow.h>
 #include "cameracontrolshelp.h"
+#include "debug.h"
 #include <QResizeEvent>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QImage>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -35,4 +39,45 @@ void MainWindow::on_actionQuit_triggered()
 void MainWindow::on_actionCamera_Controls_triggered()
 {
     cHelp.show();
+}
+
+void MainWindow::on_actionLoad_Greyscale_Heightmap_triggered() {
+    QString path = QFileDialog::getOpenFileName(
+        this,
+        "Open Greyscale Heightmap",
+        QDir::homePath(),
+        "Images (*.png *.jpg *.bmp)"
+        );
+
+    if (path.isEmpty()) return;
+
+    QImage img = QImage(path);
+    if (img.isNull()) {
+        QMessageBox::warning(this, "Error", "Failed to load image.");
+        return;
+    }
+
+    ui->mygl->applyHeightmap(img, false);
+    LOG("applying greyscale heightmap");
+}
+
+void MainWindow::on_actionLoad_Colored_Heightmap_triggered() {
+    QString path = QFileDialog::getOpenFileName(
+        this,
+        "Open Colored Heightmap",
+        QDir::homePath(),
+        "Images (*.png *.jpg *.bmp)"
+        );
+
+    if (path.isEmpty()) return;
+
+    QImage img = QImage(path);
+    if (img.isNull()) {
+        QMessageBox::warning(this, "Error", "Failed to load image.");
+        return;
+    }
+
+    ui->mygl->applyHeightmap(img, true);
+    LOG("applying colored heightmap");
+
 }

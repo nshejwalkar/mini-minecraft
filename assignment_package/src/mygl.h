@@ -90,6 +90,9 @@ public:
     // Calls Terrain::draw().
     void renderTerrain();
 
+    // called from mainwindow.cpp
+    void applyHeightmap(const QImage& img, bool colored);
+
 protected:
     // Automatically invoked when the user
     // presses a key on the keyboard
