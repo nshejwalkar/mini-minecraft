@@ -30,6 +30,9 @@ public:
     // for easy access from MyGL
     const Camera& mcr_camera;
 
+    // for the floating camera debug
+    std::array<glm::vec3, 8> getCollisionVerts() const;
+
     Player(glm::vec3 pos, const Terrain &terrain);
     virtual ~Player() override;
 

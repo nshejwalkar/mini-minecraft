@@ -24,7 +24,8 @@ MyGL::MyGL(QWidget *parent)
     last_mouse_pos(QPoint(width() / 2, height() / 2)),
     mouseDelta(0.f,0.f), textureAtlas(this),
     currTime(0.f),
-    mouseRecenter(false), mouseLocked(false)
+    mouseRecenter(false), mouseLocked(false),
+    m_playerbounds(this)
 {
     // Connect the timer to a function so that when the timer ticks the function is executed
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
@@ -208,7 +209,32 @@ void MyGL::paintGL() {
     // update time
     m_progLambert.setUnifFloat("u_Time", currTime);
 
-    glm::mat4 viewproj = m_player.mcr_camera.getViewProj();
+    glm::mat4 viewproj;
+    glm::mat4 view;
+
+    if (!m_thirdPersonDebug) {
+        // normal
+        viewproj = m_player.mcr_camera.getViewProj();
+        view = m_player.mcr_camera.getView();
+    } else {
+        // debug cam view
+        glm::vec3 playerPos = m_player.mcr_position;
+        glm::vec3 forward = m_player.mcr_camera.m_forward;
+        float distBehind = 6.f;
+        float heightUp = 2.5f;
+        glm::vec3 up = glm::vec3(0.f, 1.f, 0.f);
+        glm::vec3 eye = playerPos - forward * distBehind + up * heightUp;
+        glm::vec3 center = playerPos + glm::vec3(0.f, 1.f, 0.f);  // look at center of body
+        view = glm::lookAt(eye, center, up);
+
+        float fovy = glm::radians(60.f);
+        float aspect = float(width()) / float(height());
+        glm::mat4 proj = glm::perspective(fovy, aspect, 0.1f, 1000.f);
+
+        viewproj = proj*view;
+    }
+
+    m_progLambert.setUnifMat4("u_View", view);
     m_progLambert.setUnifMat4("u_ViewProj", viewproj);
     m_progFlat.setUnifMat4("u_ViewProj", viewproj);
     m_progInstanced.setUnifMat4("u_ViewProj", viewproj);
@@ -217,6 +243,15 @@ void MyGL::paintGL() {
     textureAtlas.bind(1);
 
     renderTerrain();
+
+    if (m_thirdPersonDebug) {
+        m_playerbounds.updateFromVerts(m_player.getCollisionVerts());
+        m_progFlat.setUnifMat4("u_ViewProj", viewproj);
+        m_progFlat.setUnifMat4("u_Model", glm::mat4(1.f));
+        glPointSize(8.f);
+        m_progFlat.draw(m_playerbounds);
+        glPointSize(1.f);
+    }
 
     glDisable(GL_DEPTH_TEST);
     m_progFlat.setUnifMat4("u_Model", glm::mat4());
@@ -330,6 +365,8 @@ void MyGL::keyPressEvent(QKeyEvent *e) {
         m_player.flight_mode = !m_player.flight_mode;
     } else if (e->key() == Qt::Key_P) {
         m_player.noclip_mode = !m_player.noclip_mode;
+    } else if (e->key() == Qt::Key_C) {
+        this->m_thirdPersonDebug = !this->m_thirdPersonDebug;
     }
 }
 

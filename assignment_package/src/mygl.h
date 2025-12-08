@@ -3,6 +3,7 @@
 
 #include "openglcontext.h"
 #include "scene/crosshair.h"
+#include "scene/playerbounds.h"
 #include "shaderprogram.h"
 #include "scene/worldaxes.h"
 #include "scene/camera.h"
@@ -54,6 +55,8 @@ private:
 
     bool mouseRecenter;
     bool mouseLocked;
+    bool m_thirdPersonDebug = false;
+    PlayerBounds m_playerbounds;
 
     void resetPlayer();
 
