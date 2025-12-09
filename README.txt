@@ -67,6 +67,9 @@ I slightly restructured the terrain generation to make it easier to set up for m
 ===========
 Milestone 3
 ===========
+
+Video: https://youtu.be/l0o1RBH494U?si=mFHT7DcBqeIM6Hiw
+
 Neel:
 For Milestone 3, I added several features.
 I added a fog effect in the lambert fragment shader by using the z-depth of a fragment and interpolating/mixing between a near and far boundary for the fog.
