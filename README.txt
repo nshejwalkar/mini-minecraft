@@ -8,21 +8,6 @@ Milestone 1
 
 Video: https://youtu.be/QCswykhS4P4
 
-Jay Katyan:
-
-Procedural Terrain:
-I implemented procedural terrain generation by creating two new classes, the "World" class and the "Noise" class. The noise class contains a number of helper functions/various noise generators, whereas the world class uses these noise generators to procedurally generate the terrain. Currently, the world class is capable of generating two distinct terrains, the "grassland" terrain and
-the "mountains" terrain (each represented as an enum). The "grassland" terrain uses a combination of Worley noise and Fractal Perlin Noise to create a realistic, rolling terrain with subtle hills.
-The "mountains" terrain uses Fractal Perlin Noise which is then post-processed to amplify its outputs/height to create more realistic mountains. Finally, I've implemented logic in terrain.cpp to
-set blocks according to their world height. Throughout my work, I used various helper scripts/tools to visualize different noise functions and height maps before implementing them into the game itself.
-
-Efficient Terrain Rendering and Chunking:
-To implement efficient terrain rendering and chunking, I implemented the create() function such that the VBO data is interleaved (rather than instanced) and only contains face data (rather the all sides for every block, including faces that cannot be directly seen). This improved performance significantly, and allowed for significantly more efficient terrain rendering. I also implemented
-terrain expansion logic, however rather than only doing checks for -16-+16 around the player, I decided to check a much larger range of -32-+32 on x and z. This allows for a signficantly improved
-user experience when roaming the world and generating new chunks, as chunks are not generated in "strips" and rather as larger landmasses. I also increased the render distance significantly, allowing
-for 1024x1024 blocks to be visible at once. In part, this was done to assist my debugging of the world generation. Simultaneously however, this improves the gameplay experience and makes the game
-far more similar to Minecraft's official implementation.
-
 Neel Shejwalkar:
 
 Mouse movement:
@@ -39,11 +24,37 @@ I added a crosshair by buffering 2 small lines, and then drawing them in screen 
 I added a teleportation feature - by clicking t, one can aim and then teleport directly to a block up to 200 blocks' distance from the player's current position. This was implemented using the grid marching function used before.
 
 
+Jay Katyan:
+
+Procedural Terrain:
+I implemented procedural terrain generation by creating two new classes, the "World" class and the "Noise" class. The noise class contains a number of helper functions/various noise generators, whereas the world class uses these noise generators to procedurally generate the terrain. Currently, the world class is capable of generating two distinct terrains, the "grassland" terrain and
+the "mountains" terrain (each represented as an enum). The "grassland" terrain uses a combination of Worley noise and Fractal Perlin Noise to create a realistic, rolling terrain with subtle hills.
+The "mountains" terrain uses Fractal Perlin Noise which is then post-processed to amplify its outputs/height to create more realistic mountains. Finally, I've implemented logic in terrain.cpp to
+set blocks according to their world height. Throughout my work, I used various helper scripts/tools to visualize different noise functions and height maps before implementing them into the game itself.
+
+Efficient Terrain Rendering and Chunking:
+To implement efficient terrain rendering and chunking, I implemented the create() function such that the VBO data is interleaved (rather than instanced) and only contains face data (rather the all sides for every block, including faces that cannot be directly seen). This improved performance significantly, and allowed for significantly more efficient terrain rendering. I also implemented
+terrain expansion logic, however rather than only doing checks for -16-+16 around the player, I decided to check a much larger range of -32-+32 on x and z. This allows for a signficantly improved
+user experience when roaming the world and generating new chunks, as chunks are not generated in "strips" and rather as larger landmasses. I also increased the render distance significantly, allowing
+for 1024x1024 blocks to be visible at once. In part, this was done to assist my debugging of the world generation. Simultaneously however, this improves the gameplay experience and makes the game
+far more similar to Minecraft's official implementation.
+
+
 ===========
 Milestone 2
 ===========
 
 Video: https://youtu.be/IdP-l8xU5Pg
+
+Neel Shejwalkar:
+Texturing and Texture Animation:
+I added textures into our game by using the given texture atlas and appending the correct UV coordinates into the per-chunk VBOs. 
+I added an "animate" flag for water and lava blocks in the z position of the vec4 that specified UV coordinates in the VBO, and updated the fragment shader to correctly animate these blocks. 
+For each chunk, I created 2 pairs of VBOs, one for transparent and one for opaque blocks, and enabled alpha blending.
+
+Other features:
+I slightly restructured the terrain generation to make it easier to set up for multithreading by introducing the terrain generation zone primitive and reordering chunk loops.
+
 
 Jay Katyan:
 Cave Generation: 
@@ -55,15 +66,6 @@ Multithreading:
 I implemented multithreading for the extended terrain generation setting up BlockTypeWorkers for internal data structure editing and VBOWorkers for adding to the VBO. 
 I decided to have these workers subclass Qt's QRunnable and be managed by QThreadPool for this milestone over the C++ standard library multithreading utilities, as I already had prior experience with Qt multithreading and thought it would integrate better. 
 To safely edit and share data between the workers and the main Terrain class, I used QMutex to lock and wait for completed chunk additions and VBO edits for each respective worker. 
-
-Neel Shejwalkar:
-Texturing and Texture Animation:
-I added textures into our game by using the given texture atlas and appending the correct UV coordinates into the per-chunk VBOs. 
-I added an "animate" flag for water and lava blocks in the z position of the vec4 that specified UV coordinates in the VBO, and updated the fragment shader to correctly animate these blocks. 
-For each chunk, I created 2 pairs of VBOs, one for transparent and one for opaque blocks, and enabled alpha blending.
-
-Other features:
-I slightly restructured the terrain generation to make it easier to set up for multithreading by introducing the terrain generation zone primitive and reordering chunk loops.
 
 
 ===========
